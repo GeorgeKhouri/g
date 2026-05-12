@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const { getDb } = require('../db-unified');
+const SENDER_NAME = process.env.SENDER_NAME || 'George Khouri';
 
 function fmtDate(d) {
   if (!d) return 'N/A';
@@ -58,7 +59,7 @@ function buildEmailBody(packages) {
     body += '\n';
   });
 
-  body += `${'─'.repeat(52)}\n\nPlease let me know if you have any questions or if any of the above require action.\n\nThank you,\nGeorge Khouri`;
+  body += `${'─'.repeat(52)}\n\nPlease let me know if you have any questions or if any of the above require action.\n\nThank you,\n${SENDER_NAME}`;
   return body;
 }
 
@@ -134,7 +135,7 @@ router.post('/send', async (req, res) => {
     }
 
     await transporter.sendMail({
-      from: `George Khouri <${smtpUser}>`,
+      from: `${SENDER_NAME} <${smtpUser}>`,
       to: to || process.env.LOIC_EMAIL,
       subject,
       text: body,
