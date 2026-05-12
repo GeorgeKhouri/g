@@ -17,7 +17,9 @@ function render(p) {
   document.getElementById('hdr-badge').innerHTML = statusBadge(p.status);
 
   // Status
-  const normalizedStatus = p.status === 'contacted' ? 'awaiting_confirmation' : p.status;
+  const normalizedStatus = p.status === 'contacted'
+    ? 'awaiting_confirmation'
+    : (p.status === 'ready' ? 'delivered' : p.status);
   ensureStatusOption(normalizedStatus);
   document.getElementById('status').value = normalizedStatus;
 
@@ -81,6 +83,7 @@ function ensureStatusOption(status) {
     const opt = document.createElement('option');
     opt.value = status;
     if (status === 'closed') opt.textContent = 'Done';
+    else if (status === 'ready') opt.textContent = 'Delivered';
     else if (status === 'contacted') opt.textContent = 'Awaiting Confirmation';
     else opt.textContent = status;
     select.appendChild(opt);

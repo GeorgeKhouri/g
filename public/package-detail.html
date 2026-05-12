@@ -184,7 +184,7 @@
 <script>
 const STATUS_OPTS = [
   ['received','Received'],['awaiting_loic','Awaiting Loic'],['discrepancy','Discrepancy'],
-  ['ready','Ready to Deliver'],['awaiting_confirmation','Awaiting Confirmation'],
+  ['awaiting_confirmation','Awaiting Confirmation'],
   ['confirmed','Contents Confirmed'],['delivered','Delivered'],['picked_up','Picked Up']
 ];
 document.getElementById('status').innerHTML = STATUS_OPTS.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');

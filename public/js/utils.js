@@ -2,7 +2,7 @@ const STATUS = {
   received:              { label: 'Received',               badge: 'badge-amber' },
   awaiting_loic:         { label: 'Awaiting Loic',          badge: 'badge-orange' },
   discrepancy:           { label: 'Discrepancy',            badge: 'badge-red' },
-  ready:                 { label: 'Ready to Deliver',       badge: 'badge-blue' },
+  ready:                 { label: 'Delivered',              badge: 'badge-green' },
   contacted:             { label: 'Awaiting Confirmation',  badge: 'badge-purple' },
   awaiting_confirmation: { label: 'Awaiting Confirmation',  badge: 'badge-purple' },
   confirmed:             { label: 'Contents Confirmed',     badge: 'badge-indigo' },
