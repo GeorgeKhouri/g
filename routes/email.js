@@ -95,6 +95,9 @@ router.post('/send', async (req, res) => {
   try {
     const smtpUser = process.env.OUTLOOK_USER || process.env.GMAIL_USER;
     const smtpPass = process.env.OUTLOOK_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+    const smtpHost = process.env.SMTP_HOST || 'smtp.office365.com';
+    const smtpPort = Number(process.env.SMTP_PORT || 587);
+    const smtpSecure = process.env.SMTP_SECURE === 'true';
 
     if (!smtpUser || !smtpPass) {
       return res.status(400).json({ error: 'Email credentials not configured. Set OUTLOOK_USER and OUTLOOK_APP_PASSWORD in .env.' });
@@ -104,11 +107,14 @@ router.post('/send', async (req, res) => {
     const { subject, body, package_ids, to } = req.body;
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.office365.com',
-      port: 587,
-      secure: false,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
       auth: { user: smtpUser, pass: smtpPass },
-      tls: { ciphers: 'SSLv3', rejectUnauthorized: false }
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
+      tls: { minVersion: 'TLSv1.2' }
     });
 
     const attachments = [];
@@ -141,7 +147,26 @@ router.post('/send', async (req, res) => {
     }
 
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    const code = err && err.code ? err.code : null;
+    const details = err && err.command ? `${err.message} (${err.command})` : err.message;
+
+    if (code === 'ETIMEDOUT') {
+      return res.status(502).json({
+        error: 'SMTP connection timed out. Check Render egress, SMTP host/port, and provider policy.',
+        details
+      });
+    }
+
+    if (code === 'EAUTH') {
+      return res.status(401).json({
+        error: 'SMTP authentication failed. Check OUTLOOK_USER/OUTLOOK_APP_PASSWORD.',
+        details
+      });
+    }
+
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
