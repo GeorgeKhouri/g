@@ -41,9 +41,9 @@ function buildEmailBody(packages) {
   const n = sorted.length;
   let body = `Hi Loic,\n\nPlease find below a summary of ${n} package${n !== 1 ? 's' : ''} received and processed. Packing slip${n !== 1 ? 's are' : ' is'} attached where available.\n\n`;
 
-  sorted.forEach((pkg, i) => {
+  sorted.forEach((pkg) => {
     body += `${'─'.repeat(52)}\n`;
-    body += `PACKAGE ${i + 1} OF ${n}\n`;
+    body += `PACKAGE #${String(pkg.id).padStart(3, '0')}\n`;
     body += `${'─'.repeat(52)}\n`;
 
     if (pkg.date_received) body += `Date Received:        ${fmtDate(pkg.date_received)}\n`;
