@@ -77,7 +77,9 @@ function scheduleBackups(options = {}) {
 
   const run = () => {
     runBackupOnce(options)
-      .then((p) => console.log(`[backup] created ${p}`))
+      .then((p) => {
+        if (p) console.log(`[backup] created ${p}`);
+      })
       .catch((err) => console.error('[backup] failed:', err.message));
   };
 
