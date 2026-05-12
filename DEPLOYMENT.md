@@ -29,7 +29,7 @@ A reliable, always-accessible incoming package tracking system with automatic ba
    ```bash
    cp .env.example .env
    # Edit .env with your settings:
-   # - GMAIL_USER and GMAIL_APP_PASSWORD for email
+   # - OUTLOOK_USER and OUTLOOK_APP_PASSWORD for email
    # - LOIC_EMAIL for recipient
    # - Leave DATABASE_URL empty (SQLite will be used)
    ```
@@ -77,8 +77,8 @@ Backups are stored in `./backups/` with 14-day retention.
 6. Under "Environment", add:
    ```
    NODE_ENV=production
-   GMAIL_USER=your-email@gmail.com
-   GMAIL_APP_PASSWORD=your-app-password
+   OUTLOOK_USER=your-email@vaniercollege.qc.ca
+   OUTLOOK_APP_PASSWORD=your-outlook-app-password
    LOIC_EMAIL=recipient@example.com
    BACKUP_INTERVAL_MINUTES=15
    BACKUP_RETENTION_DAYS=14
@@ -169,8 +169,8 @@ Check logs in Render dashboard → Logs tab.
 
 ### Email not sending
 
-- Verify GMAIL_APP_PASSWORD is correct (Gmail app password, not regular password)
-- Enable "Less secure app access" if using regular Gmail password
+- Verify OUTLOOK_USER and OUTLOOK_APP_PASSWORD are set correctly
+- Confirm SMTP auth/app password is enabled for your Vanier Microsoft 365 account
 
 ## File Structure
 

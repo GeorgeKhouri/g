@@ -84,9 +84,9 @@ async function generateDraft() {
     document.getElementById('to-field').value = window._loicEmail || '';
     document.getElementById('subject-field').value = lastDraft.subject;
     document.getElementById('body-field').value = lastDraft.body;
-    document.getElementById('attachment-note').textContent =
-      lastDraft.attachment_count > 0
-        ? `📎 ${lastDraft.attachment_count} file(s) will be attached (packing slips & sticker photos) when sending via Gmail.`
+        document.getElementById('attachment-note').textContent =
+          lastDraft.attachment_count > 0
+            ? `📎 ${lastDraft.attachment_count} file(s) will be attached (packing slips & sticker photos) when sending via Outlook.`
         : 'No files to attach. Upload packing slip scans on each package detail page.';
     document.getElementById('preview-section').classList.remove('hidden');
     document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });

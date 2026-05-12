@@ -92,8 +92,11 @@ router.post('/draft', (req, res) => {
 
 router.post('/send', async (req, res) => {
   try {
-    if (!process.env.GMAIL_APP_PASSWORD) {
-      return res.status(400).json({ error: 'Email password not configured. Open the .env file in C:\\Users\\khourig\\package-tracker and add your password after GMAIL_APP_PASSWORD=' });
+    const smtpUser = process.env.OUTLOOK_USER || process.env.GMAIL_USER;
+    const smtpPass = process.env.OUTLOOK_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+
+    if (!smtpUser || !smtpPass) {
+      return res.status(400).json({ error: 'Email credentials not configured. Set OUTLOOK_USER and OUTLOOK_APP_PASSWORD in .env.' });
     }
 
     const db = getDb();
@@ -103,7 +106,7 @@ router.post('/send', async (req, res) => {
       host: 'smtp.office365.com',
       port: 587,
       secure: false,
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+      auth: { user: smtpUser, pass: smtpPass },
       tls: { ciphers: 'SSLv3', rejectUnauthorized: false }
     });
 
@@ -119,7 +122,7 @@ router.post('/send', async (req, res) => {
     }
 
     await transporter.sendMail({
-      from: `George Khouri <${process.env.GMAIL_USER}>`,
+      from: `George Khouri <${smtpUser}>`,
       to: to || process.env.LOIC_EMAIL,
       subject,
       text: body,
