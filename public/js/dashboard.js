@@ -9,7 +9,7 @@ const STATUS_FILTERS = [
   { value: 'all',                   label: 'All' },
   { value: 'received',              label: 'Received' },
   { value: 'awaiting_loic',         label: 'Awaiting Loic' },
-  { value: 'discrepancy',           label: 'Discrepancy' },
+  { value: 'discrepancy',           label: 'Item Discrepancy' },
   { value: 'awaiting_confirmation', label: 'Awaiting Item Confirmation' },
   { value: 'confirmed',             label: 'Confirmed' },
   { value: 'delivered',             label: 'Delivered' },
@@ -59,7 +59,7 @@ function renderList(pkgs) {
   list.innerHTML = pkgs.map(p => {
     const flags = [];
     if (!p.has_packing_slip)                flags.push('<span class="flag flag-orange">No Slip</span>');
-    if (p.items_match === 0)                flags.push('<span class="flag flag-red">Discrepancy</span>');
+    if (p.items_match === 0)                flags.push('<span class="flag flag-red">Item Discrepancy</span>');
     if (p.package_type === 'needs_confirmation') flags.push('<span class="flag flag-purple">Needs Confirmation</span>');
 
     const emailDot = p.loic_email_status === 'sent'

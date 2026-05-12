@@ -1,7 +1,7 @@
 const STATUS = {
   received:              { label: 'Received',               badge: 'badge-red' },
   awaiting_loic:         { label: 'Awaiting Loic',          badge: 'badge-yellow' },
-  discrepancy:           { label: 'Discrepancy',            badge: 'badge-brown' },
+  discrepancy:           { label: 'Item Discrepancy',       badge: 'badge-brown' },
   ready:                 { label: 'Delivered',              badge: 'badge-green' },
   contacted:             { label: 'Awaiting Item Confirmation',  badge: 'badge-yellow' },
   awaiting_confirmation: { label: 'Awaiting Item Confirmation',  badge: 'badge-yellow' },

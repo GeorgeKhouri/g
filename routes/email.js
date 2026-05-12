@@ -36,7 +36,7 @@ function buildEmailBody(packages) {
 
     if (pkg.has_packing_slip) {
       if (pkg.items_match === 1) body += `Items Verified:       ✓ Match confirmed\n`;
-      else if (pkg.items_match === 0) body += `Items Verified:       ⚠ DISCREPANCY – ${pkg.discrepancy_notes || 'See notes'}\n`;
+      else if (pkg.items_match === 0) body += `Items Verified:       ⚠ ITEM DISCREPANCY – ${pkg.discrepancy_notes || 'See notes'}\n`;
     }
 
     let statusLine;
