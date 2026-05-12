@@ -11,11 +11,37 @@ function fmtDate(d) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function generatePackageSubject(packages) {
+  // Sort by ID to get the order
+  const ids = packages.map(p => p.id).sort((a, b) => a - b);
+  
+  if (ids.length === 1) {
+    return `Packages Update - ${ids[0]}`;
+  }
+  
+  // Check if IDs form a continuous range
+  let isContinuous = true;
+  for (let i = 1; i < ids.length; i++) {
+    if (ids[i] !== ids[i - 1] + 1) {
+      isContinuous = false;
+      break;
+    }
+  }
+  
+  if (isContinuous) {
+    return `Packages Update - ${ids[0]} - ${ids[ids.length - 1]}`;
+  } else {
+    return `Packages Update - ${ids.join(', ')}`;
+  }
+}
+
 function buildEmailBody(packages) {
-  const n = packages.length;
+  // Sort packages by ID for consistent presentation
+  const sorted = [...packages].sort((a, b) => a.id - b.id);
+  const n = sorted.length;
   let body = `Hi Loic,\n\nPlease find below a summary of ${n} package${n !== 1 ? 's' : ''} received and processed. Packing slip${n !== 1 ? 's are' : ' is'} attached where available.\n\n`;
 
-  packages.forEach((pkg, i) => {
+  sorted.forEach((pkg, i) => {
     body += `${'─'.repeat(52)}\n`;
     body += `PACKAGE ${i + 1} OF ${n}\n`;
     body += `${'─'.repeat(52)}\n`;
@@ -80,7 +106,7 @@ router.post('/draft', async (req, res) => {
     if (!packages.length) return res.status(404).json({ error: 'No packages found' });
 
     const body = buildEmailBody(packages);
-    const subject = `Package Update – ${packages.length} Package${packages.length !== 1 ? 's' : ''}`;
+    const subject = generatePackageSubject(packages);
 
     const attachmentNames = [];
     for (const pkg of packages) {
