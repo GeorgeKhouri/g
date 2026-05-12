@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
-const { getDb } = require('../db');
+const { getDb } = require('../db-unified');
 
 router.get('/', (req, res) => {
   try {

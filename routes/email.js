@@ -3,7 +3,7 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
-const { getDb } = require('../db');
+const { getDb } = require('../db-unified');
 
 function fmtDate(d) {
   if (!d) return 'N/A';

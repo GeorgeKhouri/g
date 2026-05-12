@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { getDb } = require('../db');
+const { getDb } = require('../db-unified');
 
 const storage = multer.diskStorage({
   destination: path.join(__dirname, '..', 'uploads'),
