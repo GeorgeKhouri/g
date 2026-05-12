@@ -36,11 +36,11 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="form-label">Carrier</label>
-        <select id="carrier" class="form-input">
-          <option value="">— Select —</option>
-          <option>FedEx</option><option>UPS</option><option>Purolator</option>
-          <option>Canada Post</option><option>Canpar</option><option>DHL</option><option>Amazon</option><option>GLS</option><option>Other</option>
-        </select>
+        <input id="carrier" class="form-input" list="carrier-options" placeholder="Select or type carrier">
+        <datalist id="carrier-options">
+          <option value="FedEx"></option><option value="UPS"></option><option value="Purolator"></option>
+          <option value="Canada Post"></option><option value="Canpar"></option><option value="DHL"></option><option value="Amazon"></option><option value="GLS"></option><option value="Nationex"></option><option value="Other"></option>
+        </datalist>
       </div>
       <div>
         <label class="form-label">Tracking #</label>
