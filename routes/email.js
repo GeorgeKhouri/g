@@ -42,15 +42,12 @@ function buildEmailBody(packages) {
     let statusLine;
     if (pkg.delivery_method === 'picked_up' || pkg.status === 'picked_up') {
       statusLine = `Picked up by ${pkg.pickup_person_name || 'N/A'}${pkg.pickup_person_department ? `, ${pkg.pickup_person_department}` : ''}`;
-    } else if (pkg.status === 'delivered') {
+    } else if (pkg.status === 'delivered' || pkg.status === 'confirmed') {
       statusLine = `Delivered to Room ${pkg.delivered_to_room || 'N/A'}`;
     }
     else if (pkg.status === 'awaiting_loic') statusLine = '⚠ Awaiting your instructions (no packing slip / no PO)';
     else if (pkg.status === 'awaiting_confirmation') statusLine = 'Awaiting item confirmation of contents';
-    else if (pkg.status === 'confirmed') {
-      const m = pkg.confirmation_method ? ` via ${pkg.confirmation_method}` : '';
-      statusLine = `Contents confirmed by ${pkg.confirmed_by || 'recipient'}${m}`;
-    } else statusLine = pkg.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    else statusLine = pkg.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
     body += `Status:               ${statusLine}\n`;
     if (pkg.package_type === 'needs_confirmation') body += `Special Note:         Requires recipient content confirmation before PO can be closed\n`;

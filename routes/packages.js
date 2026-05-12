@@ -10,11 +10,11 @@ router.get('/stats', (req, res) => {
     statuses.forEach(s => {
       stats[s] = db.prepare('SELECT COUNT(*) as c FROM packages WHERE status = ?').get(s).c;
     });
-    stats.delivered += stats.ready + stats.picked_up;
+    stats.delivered += stats.ready + stats.picked_up + stats.confirmed;
     stats.awaiting_confirmation += stats.contacted;
     stats.total = db.prepare('SELECT COUNT(*) as c FROM packages').get().c;
     stats.today = db.prepare("SELECT COUNT(*) as c FROM packages WHERE date_received = date('now','localtime')").get().c;
-    stats.pending_email = db.prepare("SELECT COUNT(*) as c FROM packages WHERE loic_email_status='not_sent' AND status IN ('delivered','ready','picked_up','discrepancy','awaiting_loic','confirmed','closed')").get().c;
+    stats.pending_email = db.prepare("SELECT COUNT(*) as c FROM packages WHERE loic_email_status='not_sent' AND status IN ('delivered','ready','picked_up','discrepancy','awaiting_loic','closed','confirmed')").get().c;
     res.json(stats);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -31,8 +31,8 @@ router.get('/', (req, res) => {
         conds.push('(p.status = ? OR p.status = ?)');
         params.push('awaiting_confirmation', 'contacted');
       } else if (status === 'delivered') {
-        conds.push('(p.status = ? OR p.status = ? OR p.status = ?)');
-        params.push('delivered', 'ready', 'picked_up');
+        conds.push('(p.status = ? OR p.status = ? OR p.status = ? OR p.status = ?)');
+        params.push('delivered', 'ready', 'picked_up', 'confirmed');
       } else {
         conds.push('p.status = ?');
         params.push(status);

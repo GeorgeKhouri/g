@@ -11,7 +11,6 @@ const STATUS_FILTERS = [
   { value: 'awaiting_loic',         label: 'Awaiting Loic' },
   { value: 'discrepancy',           label: 'Item Discrepancy' },
   { value: 'awaiting_confirmation', label: 'Awaiting Item Confirmation' },
-  { value: 'confirmed',             label: 'Confirmed' },
   { value: 'delivered',             label: 'Delivered' },
 ];
 
@@ -64,7 +63,7 @@ function renderList(pkgs) {
 
     const emailDot = p.loic_email_status === 'sent'
       ? '<span class="email-dot email-sent" title="Emailed to Loic"></span>'
-      : (['delivered','picked_up','discrepancy','awaiting_loic','confirmed','closed'].includes(p.status)
+      : (['delivered','picked_up','discrepancy','awaiting_loic','closed'].includes(p.status)
           ? '<span class="email-dot email-pending" title="Email pending"></span>' : '');
 
     const meta = [p.vendor, p.po_number ? `PO: ${p.po_number}` : null, p.carrier]

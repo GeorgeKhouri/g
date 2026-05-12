@@ -19,7 +19,7 @@ function render(p) {
   // Status
   const normalizedStatus = p.status === 'contacted'
     ? 'awaiting_confirmation'
-    : (p.status === 'ready' || p.status === 'picked_up' ? 'delivered' : p.status);
+    : (p.status === 'ready' || p.status === 'picked_up' || p.status === 'confirmed' ? 'delivered' : p.status);
   ensureStatusOption(normalizedStatus);
   document.getElementById('status').value = normalizedStatus;
 
@@ -83,7 +83,7 @@ function ensureStatusOption(status) {
     const opt = document.createElement('option');
     opt.value = status;
     if (status === 'closed') opt.textContent = 'Done';
-    else if (status === 'ready' || status === 'picked_up') opt.textContent = 'Delivered';
+    else if (status === 'ready' || status === 'picked_up' || status === 'confirmed') opt.textContent = 'Delivered';
     else if (status === 'contacted') opt.textContent = 'Awaiting Item Confirmation';
     else opt.textContent = status;
     select.appendChild(opt);
@@ -217,7 +217,7 @@ async function saveConfirmation() {
   try {
     const method = document.getElementById('confirmation_method').value;
     let newStatus = currentPkg.status;
-    if (method) newStatus = 'confirmed';
+    if (method) newStatus = 'delivered';
 
     const payload = {
       confirmation_method: method || null,

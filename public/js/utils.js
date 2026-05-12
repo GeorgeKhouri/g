@@ -5,7 +5,7 @@ const STATUS = {
   ready:                 { label: 'Delivered',              badge: 'badge-green' },
   contacted:             { label: 'Awaiting Item Confirmation',  badge: 'badge-yellow' },
   awaiting_confirmation: { label: 'Awaiting Item Confirmation',  badge: 'badge-yellow' },
-  confirmed:             { label: 'Contents Confirmed',     badge: 'badge-indigo' },
+  confirmed:             { label: 'Delivered',              badge: 'badge-green' },
   delivered:             { label: 'Delivered',              badge: 'badge-green' },
   picked_up:             { label: 'Delivered',              badge: 'badge-green' },
   closed:                { label: 'Done',                   badge: 'badge-gray' }
