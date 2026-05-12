@@ -17,6 +17,7 @@ function render(p) {
   document.getElementById('hdr-badge').innerHTML = statusBadge(p.status);
 
   // Status
+  ensureStatusOption(p.status);
   document.getElementById('status').value = p.status;
 
   // Email status
@@ -69,6 +70,18 @@ function render(p) {
 
   // Files
   renderFiles(p.files || []);
+}
+
+function ensureStatusOption(status) {
+  const select = document.getElementById('status');
+  if (!select || !status) return;
+  const exists = Array.from(select.options).some(o => o.value === status);
+  if (!exists) {
+    const opt = document.createElement('option');
+    opt.value = status;
+    opt.textContent = status === 'closed' ? 'Done' : status;
+    select.appendChild(opt);
+  }
 }
 
 function renderFiles(files) {

@@ -8,7 +8,7 @@ const STATUS = {
   confirmed:             { label: 'Contents Confirmed',     badge: 'badge-indigo' },
   delivered:             { label: 'Delivered',              badge: 'badge-green' },
   picked_up:             { label: 'Picked Up',              badge: 'badge-green' },
-  closed:                { label: 'Closed',                 badge: 'badge-gray' }
+  closed:                { label: 'Done',                   badge: 'badge-gray' }
 };
 
 function statusBadge(status) {
