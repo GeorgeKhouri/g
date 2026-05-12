@@ -29,6 +29,7 @@ router.post('/package/:packageId', upload.array('files', 20), (req, res) => {
       return res.status(404).json({ error: 'Package not found' });
     const fileType = req.body.file_type || 'sticker';
     let packingSlipIndex = 0;
+    let stickerIndex = 0;
     const inserted = req.files.map(file => {
       let originalName = file.originalname;
       if (fileType === 'packing_slip') {
@@ -36,6 +37,11 @@ router.post('/package/:packageId', upload.array('files', 20), (req, res) => {
         const ext = path.extname(file.originalname) || '';
         const suffix = packingSlipIndex > 1 ? ` ${packingSlipIndex}` : '';
         originalName = `Package ${packageId}_ Packing Slip${suffix}${ext}`;
+      } else if (fileType === 'sticker') {
+        stickerIndex += 1;
+        const ext = path.extname(file.originalname) || '';
+        const suffix = stickerIndex > 1 ? ` ${stickerIndex}` : '';
+        originalName = `Package ${packageId}_ Outside Sticker${suffix}${ext}`;
       }
       const r = db.prepare('INSERT INTO package_files (package_id,file_type,file_name,original_name) VALUES (?,?,?,?)')
         .run(packageId, fileType, file.filename, originalName);
