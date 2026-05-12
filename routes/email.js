@@ -19,13 +19,12 @@ function buildEmailBody(packages) {
     body += `PACKAGE ${i + 1} OF ${n}\n`;
     body += `${'─'.repeat(52)}\n`;
 
-    body += `Date Received:        ${fmtDate(pkg.date_received)}\n`;
+    if (pkg.date_received) body += `Date Received:        ${fmtDate(pkg.date_received)}\n`;
 
     const recipient = [pkg.recipient_name, pkg.department].filter(Boolean).join(' – ');
     if (recipient) body += `Recipient:            ${recipient}\n`;
 
     if (pkg.po_number) body += `PO Number:            ${pkg.po_number}\n`;
-    else body += `PO Number:            ⚠ No PO on file\n`;
 
     if (pkg.vendor) body += `Vendor / Sender:      ${pkg.vendor}\n`;
 
@@ -41,15 +40,19 @@ function buildEmailBody(packages) {
 
     let statusLine;
     if (pkg.delivery_method === 'picked_up' || pkg.status === 'picked_up') {
-      statusLine = `Picked up by ${pkg.pickup_person_name || 'N/A'}${pkg.pickup_person_department ? `, ${pkg.pickup_person_department}` : ''}`;
+      if (pkg.pickup_person_name) {
+        statusLine = `Picked up by ${pkg.pickup_person_name}${pkg.pickup_person_department ? `, ${pkg.pickup_person_department}` : ''}`;
+      } else {
+        statusLine = 'Picked up';
+      }
     } else if (pkg.status === 'delivered' || pkg.status === 'confirmed') {
-      statusLine = `Delivered to Room ${pkg.delivered_to_room || 'N/A'}`;
+      statusLine = pkg.delivered_to_room ? `Delivered to Room ${pkg.delivered_to_room}` : 'Delivered';
     }
     else if (pkg.status === 'awaiting_loic') statusLine = '⚠ Awaiting your instructions (no packing slip / no PO)';
     else if (pkg.status === 'awaiting_confirmation') statusLine = 'Awaiting item confirmation of contents';
-    else statusLine = pkg.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    else if (pkg.status) statusLine = pkg.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-    body += `Status:               ${statusLine}\n`;
+    if (statusLine) body += `Status:               ${statusLine}\n`;
     if (pkg.package_type === 'needs_confirmation') body += `Special Note:         Requires recipient content confirmation before PO can be closed\n`;
     if (pkg.notes) body += `Notes:                ${pkg.notes}\n`;
     body += '\n';
