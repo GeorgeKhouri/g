@@ -49,7 +49,8 @@
     </div>
     <div>
       <label class="form-label">Vendor / Sender</label>
-      <input id="vendor" type="text" class="form-input" placeholder="e.g. Fisher Scientific">
+      <input id="vendor" type="text" class="form-input" list="vendor-options" placeholder="e.g. Fisher Scientific">
+      <datalist id="vendor-options"></datalist>
     </div>
   </div>
 
@@ -58,16 +59,19 @@
     <p class="section-heading">Recipient</p>
     <div>
       <label class="form-label">Name</label>
-      <input id="recipient_name" type="text" class="form-input" placeholder="e.g. John Smith, Vanier, Unknown">
+      <input id="recipient_name" type="text" class="form-input" list="recipient-options" placeholder="e.g. John Smith, Vanier, Unknown">
+      <datalist id="recipient-options"></datalist>
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="form-label">Department</label>
-        <input id="department" type="text" class="form-input" placeholder="e.g. Science">
+        <input id="department" type="text" class="form-input" list="department-options" placeholder="e.g. Science">
+        <datalist id="department-options"></datalist>
       </div>
       <div>
         <label class="form-label">PO Number</label>
-        <input id="po_number" type="text" class="form-input" placeholder="From sticker or slip">
+        <input id="po_number" type="text" class="form-input" list="po-options" placeholder="From sticker or slip">
+        <datalist id="po-options"></datalist>
       </div>
     </div>
   </div>

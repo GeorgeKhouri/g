@@ -2,6 +2,60 @@
 const staged = { sticker: [], slip: [] };
 
 document.getElementById('date_received').value = today();
+initHistorySuggestions();
+
+function normalizeSuggestion(v) {
+  return String(v || '').trim().toLowerCase();
+}
+
+function uniqueRecentValues(rows, field, max = 100) {
+  const seen = new Set();
+  const values = [];
+  for (const row of rows) {
+    const raw = String(row[field] || '').trim();
+    if (!raw) continue;
+    const key = normalizeSuggestion(raw);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    values.push(raw);
+    if (values.length >= max) break;
+  }
+  return values;
+}
+
+function setDatalistOptions(datalistId, values) {
+  const list = document.getElementById(datalistId);
+  if (!list) return;
+  list.innerHTML = values.map(v => `<option value="${v.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"></option>`).join('');
+}
+
+async function initHistorySuggestions() {
+  try {
+    const rows = await api('GET', '/api/packages');
+    if (!Array.isArray(rows) || !rows.length) return;
+
+    // Keep the first seen value from recent rows so suggestions reflect latest wording.
+    setDatalistOptions('vendor-options', uniqueRecentValues(rows, 'vendor'));
+    setDatalistOptions('recipient-options', uniqueRecentValues(rows, 'recipient_name'));
+    setDatalistOptions('department-options', uniqueRecentValues(rows, 'department'));
+    setDatalistOptions('po-options', uniqueRecentValues(rows, 'po_number'));
+
+    const carrierDefaults = Array.from(document.querySelectorAll('#carrier-options option')).map(o => o.value);
+    const carrierHistory = uniqueRecentValues(rows, 'carrier');
+    const mergedCarriers = [];
+    const seenCarrier = new Set();
+    [...carrierDefaults, ...carrierHistory].forEach(v => {
+      const key = normalizeSuggestion(v);
+      if (!key || seenCarrier.has(key)) return;
+      seenCarrier.add(key);
+      mergedCarriers.push(v);
+    });
+    setDatalistOptions('carrier-options', mergedCarriers);
+  } catch (e) {
+    // Suggestions are optional; form should still work if this fails.
+    console.warn('Could not load history suggestions', e);
+  }
+}
 
 function togglePackingSlip() {
   const has = document.getElementById('has_packing_slip').checked;
