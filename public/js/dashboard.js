@@ -56,6 +56,7 @@ function renderList(pkgs) {
   empty.classList.add('hidden');
 
   list.innerHTML = pkgs.map(p => {
+    const packageNumber = `#${String(p.id).padStart(3, '0')}`;
     const flags = [];
     if (!p.has_packing_slip)                flags.push('<span class="flag flag-orange">No Slip</span>');
     if (p.items_match === 0)                flags.push('<span class="flag flag-red">Item Discrepancy</span>');
@@ -77,7 +78,10 @@ function renderList(pkgs) {
           ${emailDot}
           ${flags.join('')}
         </div>
-        <span style="font-size:0.78rem;color:#94a3b8;white-space:nowrap;flex-shrink:0;">${fmtDate(p.date_received)}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap;flex-shrink:0;">
+          <span style="font-size:0.78rem;font-weight:600;color:#334155;">${packageNumber}</span>
+          <span style="font-size:0.78rem;color:#94a3b8;">${fmtDate(p.date_received)}</span>
+        </div>
       </div>
       <div style="font-size:1rem;font-weight:600;color:#0f172a;">${p.recipient_name || '<span style="color:#94a3b8;font-weight:400;font-style:italic;">Unknown recipient</span>'}</div>
       ${p.department ? `<div style="font-size:0.82rem;color:#64748b;margin-top:1px;">${p.department}</div>` : ''}
