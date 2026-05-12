@@ -89,10 +89,17 @@ function buildEmailBody(packages) {
   return body;
 }
 
-async function getLoicAttachmentsForPackage(db, packageId, hasPackingSlip) {
-  const preferredType = hasPackingSlip ? 'packing_slip' : 'sticker';
-  return await db.prepare('SELECT * FROM package_files WHERE package_id = ? AND file_type = ? ORDER BY uploaded_at')
-    .all(packageId, preferredType);
+async function getLoicAttachmentsForPackage(db, packageId) {
+  // Get both packing_slip and sticker files
+  return await db.prepare('SELECT * FROM package_files WHERE package_id = ? AND file_type IN (?, ?) ORDER BY file_type DESC, uploaded_at')
+    .all(packageId, 'packing_slip', 'sticker');
+}
+
+function buildAttachmentFilename(packageId, file, index) {
+  const pkgNum = String(packageId).padStart(3, '0');
+  const fileType = file.file_type === 'packing_slip' ? 'Packing_Slip' : 'Sticker';
+  const ext = file.original_name ? file.original_name.split('.').pop() : file.file_name.split('.').pop();
+  return `Package_${pkgNum}_${fileType}_${index}.${ext}`;
 }
 
 router.post('/draft', async (req, res) => {
@@ -110,10 +117,13 @@ router.post('/draft', async (req, res) => {
 
     const attachmentNames = [];
     for (const pkg of packages) {
-      const files = await getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip);
-      files.forEach(f => {
+      const files = await getLoicAttachmentsForPackage(db, pkg.id);
+      files.forEach((f, idx) => {
         const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-        if (fs.existsSync(fp)) attachmentNames.push(f.original_name || f.file_name);
+        if (fs.existsSync(fp)) {
+          const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
+          attachmentNames.push(labeledName);
+        }
       });
     }
 
@@ -152,10 +162,13 @@ router.post('/send', async (req, res) => {
       const placeholders = package_ids.map(() => '?').join(',');
       const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
       for (const pkg of packages) {
-        const files = await getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip);
-        files.forEach(f => {
+        const files = await getLoicAttachmentsForPackage(db, pkg.id);
+        files.forEach((f, idx) => {
           const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-          if (fs.existsSync(fp)) attachments.push({ filename: f.original_name || f.file_name, path: fp });
+          if (fs.existsSync(fp)) {
+            const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
+            attachments.push({ filename: labeledName, path: fp });
+          }
         });
       }
     }
