@@ -16,7 +16,7 @@ const STATUS_FILTERS = [
   { value: 'confirmed',             label: 'Confirmed' },
   { value: 'delivered',             label: 'Delivered' },
   { value: 'picked_up',             label: 'Picked Up' },
-  { value: 'closed',                label: 'Closed' },
+  { value: 'closed',                label: 'Done' },
 ];
 
 let activeStatus = 'all', searchVal = '', dateVal = '', debounceTimer;
