@@ -84,7 +84,7 @@ function ensureStatusOption(status) {
     opt.value = status;
     if (status === 'closed') opt.textContent = 'Done';
     else if (status === 'ready' || status === 'picked_up') opt.textContent = 'Delivered';
-    else if (status === 'contacted') opt.textContent = 'Awaiting Confirmation';
+    else if (status === 'contacted') opt.textContent = 'Awaiting Item Confirmation';
     else opt.textContent = status;
     select.appendChild(opt);
   }

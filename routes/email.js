@@ -46,7 +46,7 @@ function buildEmailBody(packages) {
       statusLine = `Delivered to Room ${pkg.delivered_to_room || 'N/A'}`;
     }
     else if (pkg.status === 'awaiting_loic') statusLine = '⚠ Awaiting your instructions (no packing slip / no PO)';
-    else if (pkg.status === 'awaiting_confirmation') statusLine = 'Awaiting recipient confirmation of contents';
+    else if (pkg.status === 'awaiting_confirmation') statusLine = 'Awaiting item confirmation of contents';
     else if (pkg.status === 'confirmed') {
       const m = pkg.confirmation_method ? ` via ${pkg.confirmation_method}` : '';
       statusLine = `Contents confirmed by ${pkg.confirmed_by || 'recipient'}${m}`;
