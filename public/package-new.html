@@ -26,16 +26,6 @@
 
 <main class="max-w-2xl mx-auto px-4 py-5 space-y-3">
 
-  <!-- AI Assist -->
-  <div class="card space-y-3">
-    <p class="section-heading">AI Assist</p>
-    <p class="form-hint">Take sticker/slip photos first, then let AI pre-fill as many fields as possible.</p>
-    <div class="flex items-center gap-3">
-      <button type="button" id="ai-fill-btn" onclick="runAiAutofill()" class="btn btn-secondary">Detect Info From Photos</button>
-      <span id="ai-fill-status" class="form-hint"></span>
-    </div>
-  </div>
-
   <!-- Arrival Info -->
   <div class="card space-y-4">
     <p class="section-heading">Arrival</p>
@@ -49,7 +39,7 @@
         <select id="carrier" class="form-input">
           <option value="">— Select —</option>
           <option>FedEx</option><option>UPS</option><option>Purolator</option>
-          <option>Canada Post</option><option>DHL</option><option>Amazon</option><option>Other</option>
+          <option>Canada Post</option><option>Canpar</option><option>DHL</option><option>Amazon</option><option>GLS</option><option>Other</option>
         </select>
       </div>
       <div>
@@ -190,7 +180,6 @@
 
 <div id="toast"></div>
 <script src="/js/utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.min.js"></script>
 <script src="/js/package-form.js"></script>
 </body>
 </html>
