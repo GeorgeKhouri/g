@@ -19,7 +19,7 @@ function render(p) {
   // Status
   const normalizedStatus = p.status === 'contacted'
     ? 'awaiting_confirmation'
-    : (p.status === 'ready' ? 'delivered' : p.status);
+    : (p.status === 'ready' || p.status === 'picked_up' ? 'delivered' : p.status);
   ensureStatusOption(normalizedStatus);
   document.getElementById('status').value = normalizedStatus;
 
@@ -83,7 +83,7 @@ function ensureStatusOption(status) {
     const opt = document.createElement('option');
     opt.value = status;
     if (status === 'closed') opt.textContent = 'Done';
-    else if (status === 'ready') opt.textContent = 'Delivered';
+    else if (status === 'ready' || status === 'picked_up') opt.textContent = 'Delivered';
     else if (status === 'contacted') opt.textContent = 'Awaiting Confirmation';
     else opt.textContent = status;
     select.appendChild(opt);
@@ -198,7 +198,7 @@ async function saveDelivery() {
     const method = document.getElementById('delivery_method').value;
     let newStatus = currentPkg.status;
     if (method === 'delivered') newStatus = 'delivered';
-    if (method === 'picked_up') newStatus = 'picked_up';
+    if (method === 'picked_up') newStatus = 'delivered';
 
     const payload = {
       delivery_method: method || null,

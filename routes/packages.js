@@ -10,7 +10,7 @@ router.get('/stats', (req, res) => {
     statuses.forEach(s => {
       stats[s] = db.prepare('SELECT COUNT(*) as c FROM packages WHERE status = ?').get(s).c;
     });
-    stats.delivered += stats.ready;
+    stats.delivered += stats.ready + stats.picked_up;
     stats.awaiting_confirmation += stats.contacted;
     stats.total = db.prepare('SELECT COUNT(*) as c FROM packages').get().c;
     stats.today = db.prepare("SELECT COUNT(*) as c FROM packages WHERE date_received = date('now','localtime')").get().c;
@@ -31,8 +31,8 @@ router.get('/', (req, res) => {
         conds.push('(p.status = ? OR p.status = ?)');
         params.push('awaiting_confirmation', 'contacted');
       } else if (status === 'delivered') {
-        conds.push('(p.status = ? OR p.status = ?)');
-        params.push('delivered', 'ready');
+        conds.push('(p.status = ? OR p.status = ? OR p.status = ?)');
+        params.push('delivered', 'ready', 'picked_up');
       } else {
         conds.push('p.status = ?');
         params.push(status);

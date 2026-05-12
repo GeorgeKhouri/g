@@ -40,8 +40,11 @@ function buildEmailBody(packages) {
     }
 
     let statusLine;
-    if (pkg.status === 'delivered') statusLine = `Delivered to Room ${pkg.delivered_to_room || 'N/A'}`;
-    else if (pkg.status === 'picked_up') statusLine = `Picked up by ${pkg.pickup_person_name || 'N/A'}${pkg.pickup_person_department ? `, ${pkg.pickup_person_department}` : ''}`;
+    if (pkg.delivery_method === 'picked_up' || pkg.status === 'picked_up') {
+      statusLine = `Picked up by ${pkg.pickup_person_name || 'N/A'}${pkg.pickup_person_department ? `, ${pkg.pickup_person_department}` : ''}`;
+    } else if (pkg.status === 'delivered') {
+      statusLine = `Delivered to Room ${pkg.delivered_to_room || 'N/A'}`;
+    }
     else if (pkg.status === 'awaiting_loic') statusLine = '⚠ Awaiting your instructions (no packing slip / no PO)';
     else if (pkg.status === 'awaiting_confirmation') statusLine = 'Awaiting recipient confirmation of contents';
     else if (pkg.status === 'confirmed') {
