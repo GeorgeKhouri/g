@@ -17,8 +17,9 @@ function render(p) {
   document.getElementById('hdr-badge').innerHTML = statusBadge(p.status);
 
   // Status
-  ensureStatusOption(p.status);
-  document.getElementById('status').value = p.status;
+  const normalizedStatus = p.status === 'contacted' ? 'awaiting_confirmation' : p.status;
+  ensureStatusOption(normalizedStatus);
+  document.getElementById('status').value = normalizedStatus;
 
   // Email status
   const emailLabel = document.getElementById('email-status-label');
@@ -79,7 +80,9 @@ function ensureStatusOption(status) {
   if (!exists) {
     const opt = document.createElement('option');
     opt.value = status;
-    opt.textContent = status === 'closed' ? 'Done' : status;
+    if (status === 'closed') opt.textContent = 'Done';
+    else if (status === 'contacted') opt.textContent = 'Awaiting Confirmation';
+    else opt.textContent = status;
     select.appendChild(opt);
   }
 }

@@ -3,7 +3,7 @@ const STATUS = {
   awaiting_loic:         { label: 'Awaiting Loic',          badge: 'badge-orange' },
   discrepancy:           { label: 'Discrepancy',            badge: 'badge-red' },
   ready:                 { label: 'Ready to Deliver',       badge: 'badge-blue' },
-  contacted:             { label: 'Contacted',              badge: 'badge-cyan' },
+  contacted:             { label: 'Awaiting Confirmation',  badge: 'badge-purple' },
   awaiting_confirmation: { label: 'Awaiting Confirmation',  badge: 'badge-purple' },
   confirmed:             { label: 'Contents Confirmed',     badge: 'badge-indigo' },
   delivered:             { label: 'Delivered',              badge: 'badge-green' },

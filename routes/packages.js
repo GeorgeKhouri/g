@@ -10,6 +10,7 @@ router.get('/stats', (req, res) => {
     statuses.forEach(s => {
       stats[s] = db.prepare('SELECT COUNT(*) as c FROM packages WHERE status = ?').get(s).c;
     });
+    stats.awaiting_confirmation += stats.contacted;
     stats.total = db.prepare('SELECT COUNT(*) as c FROM packages').get().c;
     stats.today = db.prepare("SELECT COUNT(*) as c FROM packages WHERE date_received = date('now','localtime')").get().c;
     stats.pending_email = db.prepare("SELECT COUNT(*) as c FROM packages WHERE loic_email_status='not_sent' AND status IN ('delivered','picked_up','discrepancy','awaiting_loic','confirmed','closed')").get().c;
@@ -24,7 +25,15 @@ router.get('/', (req, res) => {
     let query = 'SELECT p.*, (SELECT COUNT(*) FROM package_files pf WHERE pf.package_id = p.id) as file_count FROM packages p';
     const params = [];
     const conds = [];
-    if (status && status !== 'all') { conds.push('p.status = ?'); params.push(status); }
+    if (status && status !== 'all') {
+      if (status === 'awaiting_confirmation') {
+        conds.push('(p.status = ? OR p.status = ?)');
+        params.push('awaiting_confirmation', 'contacted');
+      } else {
+        conds.push('p.status = ?');
+        params.push(status);
+      }
+    }
     if (date) { conds.push('p.date_received = ?'); params.push(date); }
     if (search) {
       conds.push('(p.recipient_name LIKE ? OR p.vendor LIKE ? OR p.tracking_number LIKE ? OR p.po_number LIKE ? OR p.department LIKE ?)');

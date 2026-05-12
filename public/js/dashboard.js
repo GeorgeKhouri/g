@@ -11,7 +11,6 @@ const STATUS_FILTERS = [
   { value: 'awaiting_loic',         label: 'Awaiting Loic' },
   { value: 'discrepancy',           label: 'Discrepancy' },
   { value: 'ready',                 label: 'Ready' },
-  { value: 'contacted',             label: 'Contacted' },
   { value: 'awaiting_confirmation', label: 'Awaiting Confirmation' },
   { value: 'confirmed',             label: 'Confirmed' },
   { value: 'delivered',             label: 'Delivered' },
