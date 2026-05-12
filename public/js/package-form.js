@@ -28,6 +28,14 @@ function toggleConfirmNote() {
   document.getElementById('confirm-note').classList.toggle('hidden', !isConfirm);
 }
 
+function toggleLoicFlagForOther() {
+  const carrier = document.getElementById('carrier').value;
+  const loicCheckbox = document.getElementById('requires_loic_input');
+  if (carrier === 'Other') {
+    loicCheckbox.checked = true;
+  }
+}
+
 function previewFiles(type, files) {
   const grid = document.getElementById(type === 'sticker' ? 'sticker-previews' : 'slip-previews');
   Array.from(files).forEach(file => {

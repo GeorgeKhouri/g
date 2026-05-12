@@ -36,7 +36,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="form-label">Carrier</label>
-        <select id="carrier" class="form-input">
+        <select id="carrier" class="form-input" onchange="toggleLoicFlagForOther()">
           <option value="">— Select —</option>
           <option>FedEx</option><option>UPS</option><option>Purolator</option>
           <option>Canada Post</option><option>Canpar</option><option>DHL</option><option>Amazon</option><option>GLS</option><option>Other</option>
