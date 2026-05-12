@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "backup:now": "node scripts/backup-now.js",
-    "deploy": "npm install && node server.js"
+    "migrate:setup": "node scripts/migrate-postgres.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
@@ -14,6 +14,9 @@
     "express": "^4.19.2",
     "multer": "^2.1.1",
     "nodemailer": "^6.9.13",
-    "pg": "^8.11.0"
+    "pg": "^8.20.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
-const { getDb } = require('./db');
+const { getDb, isPostgresDb } = require('./db-unified');
 
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -35,6 +35,12 @@ function pruneOldBackups(backupDir, retentionDays) {
 }
 
 async function runBackupOnce(options = {}) {
+  // PostgreSQL on Render handles backups automatically
+  if (isPostgresDb()) {
+    console.log('[backup] using PostgreSQL - Render manages backups automatically');
+    return null;
+  }
+
   const backupDir = options.backupDir || path.join(__dirname, 'backups');
   const retentionDays = Number(options.retentionDays || process.env.BACKUP_RETENTION_DAYS || 14);
 

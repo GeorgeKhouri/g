@@ -2,3 +2,5 @@ node_modules/
 backups/
 *.db-shm
 *.db-wal
+.env
+uploads/
