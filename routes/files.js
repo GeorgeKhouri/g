@@ -24,13 +24,22 @@ const upload = multer({
 router.post('/package/:packageId', upload.array('files', 20), (req, res) => {
   try {
     const db = getDb();
-    if (!db.prepare('SELECT id FROM packages WHERE id = ?').get(req.params.packageId))
+    const packageId = Number(req.params.packageId);
+    if (!db.prepare('SELECT id FROM packages WHERE id = ?').get(packageId))
       return res.status(404).json({ error: 'Package not found' });
     const fileType = req.body.file_type || 'sticker';
+    let packingSlipIndex = 0;
     const inserted = req.files.map(file => {
+      let originalName = file.originalname;
+      if (fileType === 'packing_slip') {
+        packingSlipIndex += 1;
+        const ext = path.extname(file.originalname) || '';
+        const suffix = packingSlipIndex > 1 ? ` ${packingSlipIndex}` : '';
+        originalName = `Package ${packageId}_ Packing Slip${suffix}${ext}`;
+      }
       const r = db.prepare('INSERT INTO package_files (package_id,file_type,file_name,original_name) VALUES (?,?,?,?)')
-        .run(req.params.packageId, fileType, file.filename, file.originalname);
-      return { id: r.lastInsertRowid, file_type: fileType, file_name: file.filename, original_name: file.originalname };
+        .run(packageId, fileType, file.filename, originalName);
+      return { id: r.lastInsertRowid, file_type: fileType, file_name: file.filename, original_name: originalName };
     });
     res.json(inserted);
   } catch (err) { res.status(500).json({ error: err.message }); }

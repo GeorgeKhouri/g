@@ -59,6 +59,12 @@ function buildEmailBody(packages) {
   return body;
 }
 
+function getLoicAttachmentsForPackage(db, packageId, hasPackingSlip) {
+  const preferredType = hasPackingSlip ? 'packing_slip' : 'sticker';
+  return db.prepare('SELECT * FROM package_files WHERE package_id = ? AND file_type = ? ORDER BY uploaded_at')
+    .all(packageId, preferredType);
+}
+
 router.post('/draft', (req, res) => {
   try {
     const db = getDb();
@@ -74,7 +80,7 @@ router.post('/draft', (req, res) => {
 
     const attachmentNames = [];
     packages.forEach(pkg => {
-      db.prepare("SELECT * FROM package_files WHERE package_id = ? AND file_type IN ('packing_slip','sticker')").all(pkg.id).forEach(f => {
+      getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip).forEach(f => {
         const fp = path.join(__dirname, '..', 'uploads', f.file_name);
         if (fs.existsSync(fp)) attachmentNames.push(f.original_name || f.file_name);
       });
@@ -105,7 +111,7 @@ router.post('/send', async (req, res) => {
     if (package_ids?.length) {
       const placeholders = package_ids.map(() => '?').join(',');
       db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids).forEach(pkg => {
-        db.prepare("SELECT * FROM package_files WHERE package_id = ? AND file_type IN ('packing_slip','sticker')").all(pkg.id).forEach(f => {
+        getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip).forEach(f => {
           const fp = path.join(__dirname, '..', 'uploads', f.file_name);
           if (fs.existsSync(fp)) attachments.push({ filename: f.original_name || f.file_name, path: fp });
         });
