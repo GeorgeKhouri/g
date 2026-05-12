@@ -36,7 +36,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="form-label">Carrier</label>
-        <select id="carrier" class="form-input" onchange="toggleLoicFlagForOther()">
+        <select id="carrier" class="form-input">
           <option value="">— Select —</option>
           <option>FedEx</option><option>UPS</option><option>Purolator</option>
           <option>Canada Post</option><option>Canpar</option><option>DHL</option><option>Amazon</option><option>GLS</option><option>Other</option>
@@ -146,7 +146,7 @@
         <p class="form-label" style="margin-bottom:2px;">Flag for Loic</p>
         <p class="form-hint">Needs his instructions before delivery</p>
       </div>
-      <label class="toggle"><input type="checkbox" id="requires_loic_input"><span class="toggle-slider"></span></label>
+      <label class="toggle"><input type="checkbox" id="requires_loic_input" checked><span class="toggle-slider"></span></label>
     </div>
 
     <div>
