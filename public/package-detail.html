@@ -116,14 +116,14 @@
     <div>
       <label class="form-label">Sticker Photos</label>
       <div id="sticker-files" class="file-grid mb-2"></div>
-      <div class="upload-zone" onclick="document.getElementById('add-sticker').click()"><p>📷 Add sticker photo</p></div>
-      <input type="file" id="add-sticker" accept="image/*" capture="environment" multiple class="hidden" onchange="addFiles('sticker', this.files)">
+      <div class="upload-zone" onclick="document.getElementById('add-sticker').click()"><p>📷 Add sticker photo(s)</p><p style="font-size:0.75rem;margin-top:4px;color:#94a3b8;">Select many at once or tap again to add more.</p></div>
+      <input type="file" id="add-sticker" accept="image/*" multiple class="hidden" onchange="addFiles('sticker', this.files); this.value=''">
     </div>
     <div>
       <label class="form-label">Packing Slip</label>
       <div id="slip-files" class="file-grid mb-2"></div>
-      <div class="upload-zone" onclick="document.getElementById('add-slip').click()"><p>📄 Add packing slip scan or photo</p></div>
-      <input type="file" id="add-slip" accept="image/*,.pdf" capture="environment" multiple class="hidden" onchange="addFiles('packing_slip', this.files)">
+      <div class="upload-zone" onclick="document.getElementById('add-slip').click()"><p>📄 Add packing slip file(s)</p><p style="font-size:0.75rem;margin-top:4px;color:#94a3b8;">Select many at once or tap again to add more.</p></div>
+      <input type="file" id="add-slip" accept="image/*,.pdf" multiple class="hidden" onchange="addFiles('packing_slip', this.files); this.value=''">
     </div>
     <div id="confirmation-files-section" class="hidden">
       <label class="form-label">Confirmation Attachment</label>

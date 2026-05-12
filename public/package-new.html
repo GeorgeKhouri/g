@@ -76,10 +76,11 @@
   <div class="card space-y-3">
     <p class="section-heading">Sticker Photos</p>
     <div class="upload-zone" id="sticker-zone" onclick="document.getElementById('sticker-input').click()">
-      <p>📷 Tap to photograph box stickers</p>
+      <p>📷 Tap to add sticker photo(s)</p>
       <p style="font-size:0.75rem;margin-top:4px;color:#cbd5e1;">Capture all labels — carrier, recipient, barcode</p>
+      <p style="font-size:0.75rem;margin-top:4px;color:#94a3b8;">You can select multiple photos, then tap again to add more.</p>
     </div>
-    <input type="file" id="sticker-input" accept="image/*" capture="environment" multiple class="hidden" onchange="previewFiles('sticker', this.files)">
+    <input type="file" id="sticker-input" accept="image/*" multiple class="hidden" onchange="previewFiles('sticker', this.files); this.value=''">
     <div id="sticker-previews" class="file-grid"></div>
   </div>
 
@@ -96,9 +97,10 @@
 
     <div id="slip-upload-section" class="space-y-3">
       <div class="upload-zone" id="slip-zone" onclick="document.getElementById('slip-input').click()">
-        <p>📄 Upload packing slip scan or photo</p>
+        <p>📄 Upload packing slip file(s)</p>
+        <p style="font-size:0.75rem;margin-top:4px;color:#94a3b8;">You can select multiple images/PDFs, then tap again to add more.</p>
       </div>
-      <input type="file" id="slip-input" accept="image/*,.pdf" capture="environment" multiple class="hidden" onchange="previewFiles('slip', this.files)">
+      <input type="file" id="slip-input" accept="image/*,.pdf" multiple class="hidden" onchange="previewFiles('slip', this.files); this.value=''">
       <div id="slip-previews" class="file-grid"></div>
 
       <hr class="section-divider">
