@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Package Detail – Package Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body style="padding-bottom:80px;" class="md:pb-0">
+
+<header class="app-header">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-blue-200 text-2xl leading-none font-light">‹</a>
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-lg" id="hdr-title">Package</span>
+        <span id="hdr-badge"></span>
+      </div>
+    </div>
+    <nav class="desktop-nav hidden md:flex gap-5 text-sm items-center">
+      <a href="/" data-page="dash" class="text-blue-200 hover:text-white">Dashboard</a>
+      <a href="/package-new.html" data-page="new" class="bg-green-500 hover:bg-green-400 text-white rounded-lg w-8 h-8 flex items-center justify-center" title="New Package"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></a>
+      <a href="/email-composer.html" data-page="email" class="text-blue-200 hover:text-white">Email Loic</a>
+      <a href="/non-po.html" data-page="nonpo" class="text-blue-200 hover:text-white">Non-PO Items</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 py-5 space-y-3">
+
+  <!-- Status -->
+  <div class="card space-y-3">
+    <p class="section-heading">Status</p>
+    <div class="flex gap-2">
+      <select id="status" class="form-input flex-1"></select>
+      <button onclick="quickSave()" class="btn btn-primary" style="white-space:nowrap;">Update</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1.5px solid #f1f5f9;">
+      <span id="email-status-label" style="font-size:0.82rem;color:#94a3b8;"></span>
+      <a href="/email-composer.html" style="font-size:0.8rem;color:#2563eb;font-weight:500;">Compose Email →</a>
+    </div>
+  </div>
+
+  <!-- Package Info -->
+  <div class="card space-y-4">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <p class="section-heading" style="margin-bottom:0;">Package Info</p>
+      <button id="edit-toggle" onclick="toggleEdit()" class="btn btn-outline btn-sm">Edit</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="form-label">Date Received</label><input id="date_received" type="date" class="form-input" disabled></div>
+      <div>
+        <label class="form-label">Carrier</label>
+        <select id="carrier" class="form-input" disabled>
+          <option value="">— None —</option>
+          <option>FedEx</option><option>UPS</option><option>Purolator</option>
+          <option>Canada Post</option><option>DHL</option><option>Amazon</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div><label class="form-label">Tracking Number</label><input id="tracking_number" type="text" class="form-input" disabled></div>
+    <div><label class="form-label">Vendor / Sender</label><input id="vendor" type="text" class="form-input" disabled></div>
+    <div><label class="form-label">Recipient Name</label><input id="recipient_name" type="text" class="form-input" disabled></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="form-label">Department</label><input id="department" type="text" class="form-input" disabled></div>
+      <div><label class="form-label">PO Number</label><input id="po_number" type="text" class="form-input" disabled></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:0.88rem;color:#475569;font-weight:500;">Packing Slip Found</span>
+      <label class="toggle"><input type="checkbox" id="has_packing_slip" disabled onchange="toggleSlipMatch()"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div id="items-match-row">
+      <label class="form-label">Items Match Packing Slip?</label>
+      <div class="radio-group">
+        <div class="radio-option"><input type="radio" name="items_match" id="m-yes" value="yes" disabled onchange="toggleDiscrepancyField()"><label for="m-yes">✓ Yes</label></div>
+        <div class="radio-option"><input type="radio" name="items_match" id="m-no" value="no" disabled onchange="toggleDiscrepancyField()"><label for="m-no">✗ No</label></div>
+        <div class="radio-option"><input type="radio" name="items_match" id="m-na" value="unchecked" disabled onchange="toggleDiscrepancyField()"><label for="m-na">N/A</label></div>
+      </div>
+    </div>
+
+    <div id="discrepancy-field" class="hidden">
+      <label class="form-label">Discrepancy Notes</label>
+      <textarea id="discrepancy_notes" class="form-input" rows="2" disabled></textarea>
+    </div>
+
+    <div>
+      <label class="form-label">Package Type</label>
+      <select id="package_type" class="form-input" disabled>
+        <option value="standard">Standard</option>
+        <option value="needs_confirmation">Needs Content Confirmation</option>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:0.88rem;color:#475569;font-weight:500;">Flag for Loic</span>
+      <label class="toggle"><input type="checkbox" id="requires_loic_input" disabled><span class="toggle-slider"></span></label>
+    </div>
+
+    <div><label class="form-label">Notes</label><textarea id="notes" class="form-input" rows="2" disabled></textarea></div>
+
+    <div id="save-bar" class="hidden" style="display:none;gap:8px;">
+      <button onclick="saveInfo()" class="btn btn-primary btn-full">Save Changes</button>
+      <button onclick="cancelEdit()" class="btn btn-outline btn-full">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Files -->
+  <div class="card space-y-4">
+    <p class="section-heading">Files</p>
+    <div>
+      <label class="form-label">Sticker Photos</label>
+      <div id="sticker-files" class="file-grid mb-2"></div>
+      <div class="upload-zone" onclick="document.getElementById('add-sticker').click()"><p>📷 Add sticker photo</p></div>
+      <input type="file" id="add-sticker" accept="image/*" capture="environment" multiple class="hidden" onchange="addFiles('sticker', this.files)">
+    </div>
+    <div>
+      <label class="form-label">Packing Slip</label>
+      <div id="slip-files" class="file-grid mb-2"></div>
+      <div class="upload-zone" onclick="document.getElementById('add-slip').click()"><p>📄 Add packing slip scan or photo</p></div>
+      <input type="file" id="add-slip" accept="image/*,.pdf" capture="environment" multiple class="hidden" onchange="addFiles('packing_slip', this.files)">
+    </div>
+    <div id="confirmation-files-section" class="hidden">
+      <label class="form-label">Confirmation Attachment</label>
+      <div id="confirmation-files" class="file-grid mb-2"></div>
+      <div class="upload-zone" onclick="document.getElementById('add-conf').click()"><p>📎 Add confirmation screenshot or email</p></div>
+      <input type="file" id="add-conf" accept="image/*,.pdf" multiple class="hidden" onchange="addFiles('confirmation', this.files)">
+    </div>
+  </div>
+
+  <!-- Delivery -->
+  <div class="card space-y-4">
+    <p class="section-heading">Delivery</p>
+    <div>
+      <label class="form-label">How was it delivered?</label>
+      <select id="delivery_method" class="form-input" onchange="toggleDeliveryFields()">
+        <option value="">— Not yet delivered —</option>
+        <option value="delivered">I delivered it to a room</option>
+        <option value="picked_up">Recipient picked it up</option>
+      </select>
+    </div>
+    <div id="room-field" class="hidden">
+      <label class="form-label">Room / Location</label>
+      <input id="delivered_to_room" type="text" class="form-input" placeholder="e.g. Room 204, Building B">
+    </div>
+    <div id="pickup-fields" class="hidden space-y-3">
+      <div><label class="form-label">Full Name of Person Who Picked Up</label><input id="pickup_person_name" type="text" class="form-input"></div>
+      <div><label class="form-label">Department</label><input id="pickup_person_department" type="text" class="form-input"></div>
+    </div>
+    <button onclick="saveDelivery()" class="btn btn-green btn-full">Save Delivery Info</button>
+  </div>
+
+  <!-- Confirmation (ONETEAM-type) -->
+  <div class="card space-y-4" id="confirmation-section">
+    <p class="section-heading">Content Confirmation</p>
+    <p style="font-size:0.82rem;color:#64748b;">Record how the recipient confirmed the contents of this package.</p>
+    <div>
+      <label class="form-label">Confirmation Method</label>
+      <select id="confirmation_method" class="form-input">
+        <option value="">— Not yet confirmed —</option>
+        <option value="verbal">Verbal</option>
+        <option value="email">Email</option>
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="form-label">Confirmed By</label><input id="confirmed_by" type="text" class="form-input" placeholder="Name"></div>
+      <div><label class="form-label">Date</label><input id="confirmation_date" type="date" class="form-input"></div>
+    </div>
+    <div><label class="form-label">Notes</label><textarea id="confirmation_notes" class="form-input" rows="2"></textarea></div>
+    <button onclick="saveConfirmation()" class="btn btn-full" style="background:#7c3aed;color:white;">Save Confirmation</button>
+  </div>
+
+  <!-- Delete -->
+  <button onclick="deletePackage()" class="btn btn-danger btn-full" style="margin-top:4px;">Delete Package</button>
+
+</main>
+
+<!-- Status options populated by JS -->
+<script>
+const STATUS_OPTS = [
+  ['received','Received'],['awaiting_loic','Awaiting Loic'],['discrepancy','Discrepancy'],
+  ['ready','Ready to Deliver'],['contacted','Contacted'],['awaiting_confirmation','Awaiting Confirmation'],
+  ['confirmed','Contents Confirmed'],['delivered','Delivered'],['picked_up','Picked Up'],['closed','Closed']
+];
+document.getElementById('status').innerHTML = STATUS_OPTS.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+</script>
+
+<nav class="bottom-nav">
+  <a href="/" data-page="dash"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
+  <a href="/package-new.html" data-page="new"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>New</a>
+  <a href="/email-composer.html" data-page="email"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Email</a>
+  <a href="/non-po.html" data-page="nonpo"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Non-PO</a>
+</nav>
+
+<div id="toast"></div>
+<script src="/js/utils.js"></script>
+<script src="/js/package-detail.js"></script>
+</body>
+</html>

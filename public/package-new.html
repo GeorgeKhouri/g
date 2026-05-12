@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Package – Package Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body style="padding-bottom:80px;" class="md:pb-0">
+
+<header class="app-header">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-blue-200 text-2xl leading-none font-light">‹</a>
+      <span class="font-semibold text-lg">New Package</span>
+    </div>
+    <nav class="desktop-nav hidden md:flex gap-5 text-sm items-center">
+      <a href="/" data-page="dash" class="text-blue-200 hover:text-white">Dashboard</a>
+      <a href="/package-new.html" data-page="new" class="bg-green-500 hover:bg-green-400 text-white rounded-lg w-8 h-8 flex items-center justify-center" title="New Package"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></a>
+      <a href="/email-composer.html" data-page="email" class="text-blue-200 hover:text-white">Email Loic</a>
+      <a href="/non-po.html" data-page="nonpo" class="text-blue-200 hover:text-white">Non-PO Items</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 py-5 space-y-3">
+
+  <!-- AI Assist -->
+  <div class="card space-y-3">
+    <p class="section-heading">AI Assist</p>
+    <p class="form-hint">Take sticker/slip photos first, then let AI pre-fill as many fields as possible.</p>
+    <div class="flex items-center gap-3">
+      <button type="button" id="ai-fill-btn" onclick="runAiAutofill()" class="btn btn-secondary">Detect Info From Photos</button>
+      <span id="ai-fill-status" class="form-hint"></span>
+    </div>
+  </div>
+
+  <!-- Arrival Info -->
+  <div class="card space-y-4">
+    <p class="section-heading">Arrival</p>
+    <div>
+      <label class="form-label">Date Received</label>
+      <input id="date_received" type="date" class="form-input">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="form-label">Carrier</label>
+        <select id="carrier" class="form-input">
+          <option value="">— Select —</option>
+          <option>FedEx</option><option>UPS</option><option>Purolator</option>
+          <option>Canada Post</option><option>DHL</option><option>Amazon</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Tracking #</label>
+        <input id="tracking_number" type="text" class="form-input" placeholder="Optional">
+      </div>
+    </div>
+    <div>
+      <label class="form-label">Vendor / Sender</label>
+      <input id="vendor" type="text" class="form-input" placeholder="e.g. Fisher Scientific">
+    </div>
+  </div>
+
+  <!-- Recipient -->
+  <div class="card space-y-4">
+    <p class="section-heading">Recipient</p>
+    <div>
+      <label class="form-label">Name</label>
+      <input id="recipient_name" type="text" class="form-input" placeholder="e.g. John Smith, Vanier, Unknown">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="form-label">Department</label>
+        <input id="department" type="text" class="form-input" placeholder="e.g. Science">
+      </div>
+      <div>
+        <label class="form-label">PO Number</label>
+        <input id="po_number" type="text" class="form-input" placeholder="From sticker or slip">
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticker Photos -->
+  <div class="card space-y-3">
+    <p class="section-heading">Sticker Photos</p>
+    <div class="upload-zone" id="sticker-zone" onclick="document.getElementById('sticker-input').click()">
+      <p>📷 Tap to photograph box stickers</p>
+      <p style="font-size:0.75rem;margin-top:4px;color:#cbd5e1;">Capture all labels — carrier, recipient, barcode</p>
+    </div>
+    <input type="file" id="sticker-input" accept="image/*" capture="environment" multiple class="hidden" onchange="previewFiles('sticker', this.files)">
+    <div id="sticker-previews" class="file-grid"></div>
+  </div>
+
+  <!-- Packing Slip -->
+  <div class="card space-y-4">
+    <div class="flex items-center justify-between">
+      <p class="section-heading" style="margin-bottom:0;">Packing Slip Found?</p>
+      <label class="toggle">
+        <input type="checkbox" id="has_packing_slip" checked onchange="togglePackingSlip()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <p id="slip-hint" class="form-hint" style="margin-top:-8px;">Packing slip was found</p>
+
+    <div id="slip-upload-section" class="space-y-3">
+      <div class="upload-zone" id="slip-zone" onclick="document.getElementById('slip-input').click()">
+        <p>📄 Upload packing slip scan or photo</p>
+      </div>
+      <input type="file" id="slip-input" accept="image/*,.pdf" capture="environment" multiple class="hidden" onchange="previewFiles('slip', this.files)">
+      <div id="slip-previews" class="file-grid"></div>
+
+      <hr class="section-divider">
+
+      <div>
+        <label class="form-label">Do items match the packing slip?</label>
+        <div class="radio-group">
+          <div class="radio-option">
+            <input type="radio" name="items_match" id="match-yes" value="yes" onchange="toggleDiscrepancy()">
+            <label for="match-yes">✓ Yes</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="items_match" id="match-no" value="no" onchange="toggleDiscrepancy()">
+            <label for="match-no">✗ No</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="items_match" id="match-pending" value="unchecked" checked onchange="toggleDiscrepancy()">
+            <label for="match-pending">Not yet</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="discrepancy-section" class="hidden">
+        <label class="form-label">Describe the discrepancy</label>
+        <textarea id="discrepancy_notes" class="form-input" rows="2" placeholder="What was missing or extra?"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Package Type -->
+  <div class="card space-y-4">
+    <p class="section-heading">Package Type</p>
+
+    <div>
+      <label class="form-label">Category</label>
+      <select id="package_type" class="form-input" onchange="toggleConfirmNote()">
+        <option value="standard">Standard</option>
+        <option value="needs_confirmation">Needs Content Confirmation (e.g. ONETEAM / Gym)</option>
+      </select>
+      <p id="confirm-note" class="hidden form-hint" style="color:#7c3aed;margin-top:6px;">A copy of the packing slip will be given to the recipient to confirm contents.</p>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="form-label" style="margin-bottom:2px;">Flag for Loic</p>
+        <p class="form-hint">Needs his instructions before delivery</p>
+      </div>
+      <label class="toggle"><input type="checkbox" id="requires_loic_input"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div>
+      <label class="form-label">Initial Status</label>
+      <select id="status" class="form-input">
+        <option value="received">Received</option>
+        <option value="awaiting_loic">Awaiting Loic</option>
+        <option value="ready">Ready to Deliver</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="card">
+    <label class="form-label">Notes</label>
+    <textarea id="notes" class="form-input" rows="3" placeholder="Anything else to note…"></textarea>
+  </div>
+
+  <button id="submit-btn" onclick="submitPackage()" class="btn btn-primary btn-full" style="font-size:1rem;padding:14px;">
+    Save Package
+  </button>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="/" data-page="dash"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
+  <a href="/package-new.html" data-page="new" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>New</a>
+  <a href="/email-composer.html" data-page="email"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Email</a>
+  <a href="/non-po.html" data-page="nonpo"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Non-PO</a>
+</nav>
+
+<div id="toast"></div>
+<script src="/js/utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.min.js"></script>
+<script src="/js/package-form.js"></script>
+</body>
+</html>

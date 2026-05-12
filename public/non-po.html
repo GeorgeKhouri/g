@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-PO Items – Package Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-slate-100 pb-24 md:pb-8">
+
+<header class="app-header shadow">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-blue-200 text-xl leading-none">‹</a>
+      <span class="font-bold">Non-PO Items</span>
+    </div>
+    <nav class="desktop-nav hidden md:flex gap-6 text-sm">
+      <a href="/" data-page="dash" class="text-blue-200 hover:text-white">Dashboard</a>
+      <a href="/package-new.html" data-page="new" class="bg-green-500 hover:bg-green-400 text-white rounded-lg w-8 h-8 flex items-center justify-center" title="New Package"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></a>
+      <a href="/email-composer.html" data-page="email" class="text-blue-200 hover:text-white">Email Loic</a>
+      <a href="/non-po.html" data-page="nonpo" class="text-white font-bold">Non-PO Items</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 py-4 space-y-4">
+
+  <!-- Add New -->
+  <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+    <p class="section-title">Log Non-PO Item</p>
+    <p class="text-xs text-slate-500">For items delivered to plumbers, cleaning staff, powerhouse workers, etc. — no PO required.</p>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="form-label">Date Received</label>
+        <input id="new-date" type="date" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">For / Recipient</label>
+        <input id="new-recipient" type="text" class="form-input" placeholder="e.g. Plumber, Cleaning">
+      </div>
+    </div>
+    <div>
+      <label class="form-label">Description</label>
+      <input id="new-desc" type="text" class="form-input" placeholder="Brief description of item(s)">
+    </div>
+    <div>
+      <label class="form-label">Notes</label>
+      <textarea id="new-notes" class="form-input" rows="2" placeholder="Optional…"></textarea>
+    </div>
+    <div>
+      <label class="form-label">Attach Document / Photo</label>
+      <div class="upload-zone" onclick="document.getElementById('new-file-input').click()">
+        <p class="text-slate-400 text-sm">Tap to attach photo or scan</p>
+      </div>
+      <input type="file" id="new-file-input" accept="image/*,.pdf" capture="environment" multiple class="hidden">
+      <div id="new-previews" class="file-grid mt-2"></div>
+    </div>
+    <button onclick="addItem()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold text-sm">Save Item</button>
+  </div>
+
+  <!-- List -->
+  <div id="items-list" class="space-y-3"></div>
+  <div id="empty" class="hidden text-center py-12 text-slate-400">
+    <div class="text-4xl mb-2">📋</div>
+    <p>No non-PO items yet</p>
+  </div>
+
+</main>
+
+<!-- Item Edit Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-end md:items-center justify-center">
+  <div class="bg-white rounded-t-2xl md:rounded-2xl w-full max-w-lg p-5 space-y-3 max-h-screen overflow-y-auto">
+    <div class="flex items-center justify-between">
+      <h3 class="font-bold text-slate-800">Edit Item</h3>
+      <button onclick="closeModal()" class="text-slate-400 text-2xl leading-none">×</button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="form-label">Date Received</label>
+        <input id="edit-date" type="date" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Recipient</label>
+        <input id="edit-recipient" type="text" class="form-input">
+      </div>
+    </div>
+    <div>
+      <label class="form-label">Description</label>
+      <input id="edit-desc" type="text" class="form-input">
+    </div>
+    <div>
+      <label class="form-label">Notes</label>
+      <textarea id="edit-notes" class="form-input" rows="2"></textarea>
+    </div>
+    <div>
+      <label class="form-label">Files</label>
+      <div id="edit-files" class="file-grid mb-2"></div>
+      <div class="upload-zone" onclick="document.getElementById('edit-file-input').click()">
+        <p class="text-slate-400 text-sm">Add more files</p>
+      </div>
+      <input type="file" id="edit-file-input" accept="image/*,.pdf" multiple class="hidden" onchange="addEditFiles(this.files)">
+    </div>
+    <div class="flex gap-2 pt-1">
+      <button onclick="saveEdit()" class="flex-1 bg-blue-600 text-white py-2 rounded-xl text-sm font-semibold">Save</button>
+      <button onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-700 py-2 rounded-xl text-sm">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="/" data-page="dash"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
+  <a href="/package-new.html" data-page="new"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>New</a>
+  <a href="/email-composer.html" data-page="email"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Email</a>
+  <a href="/non-po.html" data-page="nonpo" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Non-PO</a>
+</nav>
+
+<div id="toast"></div>
+<script src="/js/utils.js"></script>
+<script src="/js/non-po.js"></script>
+</body>
+</html>

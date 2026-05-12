@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Loic – Package Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-slate-100 pb-24 md:pb-8">
+
+<header class="app-header shadow">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-blue-200 text-xl leading-none">‹</a>
+      <span class="font-bold">Email to Loic</span>
+    </div>
+    <nav class="desktop-nav hidden md:flex gap-6 text-sm">
+      <a href="/" data-page="dash" class="text-blue-200 hover:text-white">Dashboard</a>
+      <a href="/package-new.html" data-page="new" class="bg-green-500 hover:bg-green-400 text-white rounded-lg w-8 h-8 flex items-center justify-center" title="New Package"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></a>
+      <a href="/email-composer.html" data-page="email" class="text-white font-bold">Email Loic</a>
+      <a href="/non-po.html" data-page="nonpo" class="text-blue-200 hover:text-white">Non-PO Items</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-4 py-4 space-y-4">
+
+  <!-- Package selector -->
+  <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+    <div class="flex items-center justify-between">
+      <p class="section-title mb-0">Select Packages to Include</p>
+      <button onclick="selectAll()" class="text-xs text-blue-600">Select all</button>
+    </div>
+    <p class="text-xs text-slate-400">Showing packages that haven't been emailed yet (or all packages if you scroll down).</p>
+    <div id="pkg-checkboxes" class="space-y-2"></div>
+    <button onclick="toggleShowAll()" id="show-all-btn" class="text-xs text-blue-500 mt-1">Show all packages</button>
+  </div>
+
+  <!-- Generate -->
+  <button onclick="generateDraft()" id="generate-btn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold">
+    Generate Email Draft
+  </button>
+
+  <!-- Preview -->
+  <div id="preview-section" class="hidden space-y-4">
+
+    <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+      <p class="section-title">Email Preview</p>
+      <div>
+        <label class="form-label">To <span class="text-slate-400 font-normal">(editable — change to your own email to test)</span></label>
+        <input id="to-field" type="text" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Subject</label>
+        <input id="subject-field" type="text" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Body <span class="text-slate-400 font-normal">(editable)</span></label>
+        <textarea id="body-field" class="form-input font-mono text-xs" rows="20"></textarea>
+      </div>
+      <div id="attachment-note" class="text-xs text-slate-500 bg-slate-50 rounded-lg p-2"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+      <p class="section-title">Send Options</p>
+
+      <button onclick="sendEmail()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        Send via Gmail
+      </button>
+      <p class="text-xs text-slate-400 text-center">Requires Gmail App Password configured in .env</p>
+
+      <div class="border-t border-slate-100 pt-3 space-y-2">
+        <button onclick="copyText()" class="w-full border border-slate-300 text-slate-700 py-2 rounded-xl text-sm font-medium">
+          Copy Email Text to Clipboard
+        </button>
+        <button onclick="openMailto()" class="w-full border border-slate-300 text-slate-700 py-2 rounded-xl text-sm font-medium">
+          Open in Email Client (mailto:)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History -->
+  <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+    <p class="section-title">Previously Emailed Packages</p>
+    <div id="sent-list" class="space-y-2 text-sm text-slate-600"></div>
+  </div>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="/" data-page="dash"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a>
+  <a href="/package-new.html" data-page="new"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>New</a>
+  <a href="/email-composer.html" data-page="email" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Email</a>
+  <a href="/non-po.html" data-page="nonpo"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Non-PO</a>
+</nav>
+
+<div id="toast"></div>
+<script src="/js/utils.js"></script>
+<script src="/js/email-composer.js"></script>
+</body>
+</html>

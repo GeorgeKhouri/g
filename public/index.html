@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Package Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body style="padding-bottom:72px;" class="md:pb-0">
+
+<header class="app-header">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+    <span class="font-bold text-lg tracking-tight">📦 Package Tracker</span>
+    <nav class="desktop-nav hidden md:flex gap-5 text-sm items-center">
+      <a href="/" data-page="dash" class="text-white font-semibold">Dashboard</a>
+      <a href="/package-new.html" data-page="new" class="bg-green-500 hover:bg-green-400 text-white rounded-lg w-8 h-8 flex items-center justify-center" title="New Package"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></a>
+      <a href="/email-composer.html" data-page="email" class="text-blue-200 hover:text-white">Email Loic</a>
+      <a href="/non-po.html" data-page="nonpo" class="text-blue-200 hover:text-white">Non-PO Items</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-5 space-y-4">
+
+  <!-- Stats -->
+  <div id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+
+  <!-- Filters -->
+  <div class="card" style="padding:14px 16px;">
+    <div id="status-chips" class="flex flex-wrap gap-2 mb-3"></div>
+    <div class="flex gap-2">
+      <input id="search" type="search" placeholder="Search name, vendor, tracking, PO…" class="form-input flex-1" style="padding:9px 12px;">
+      <input id="date-filter" type="date" class="form-input" style="width:auto;padding:9px 12px;">
+      <button id="clear-btn" class="text-sm text-blue-600 font-medium px-2 whitespace-nowrap">Clear</button>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div id="pkg-list" class="space-y-2"></div>
+
+  <div id="empty" class="hidden text-center py-16">
+    <div style="font-size:3rem">📦</div>
+    <p class="text-lg font-semibold text-slate-700 mt-3">No packages yet</p>
+    <p class="text-sm text-slate-400 mt-1 mb-5">Start by logging your first incoming package</p>
+    <a href="/package-new.html" class="btn btn-primary">Log First Package</a>
+  </div>
+
+</main>
+
+<!-- FAB mobile -->
+<a href="/package-new.html" class="md:hidden fixed bottom-20 right-4 w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center z-50" style="font-size:1.75rem;line-height:1;box-shadow:0 4px 16px rgba(22,163,74,0.4);">+</a>
+
+<nav class="bottom-nav">
+  <a href="/" data-page="dash" class="active">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    Home
+  </a>
+  <a href="/package-new.html" data-page="new">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    New
+  </a>
+  <a href="/email-composer.html" data-page="email">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+    Email
+  </a>
+  <a href="/non-po.html" data-page="nonpo">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Non-PO
+  </a>
+</nav>
+
+<div id="toast"></div>
+<script src="/js/utils.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

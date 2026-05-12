@@ -5,7 +5,6 @@ echo  Starting Package Tracker...
 echo  Open your browser to: http://localhost:3000
 echo  (Press Ctrl+C to stop)
 echo.
-SET PATH=C:\Users\khourig\node;%PATH%
 cd /d "%~dp0"
 node server.js
 pause
