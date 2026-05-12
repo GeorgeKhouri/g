@@ -59,32 +59,33 @@ function buildEmailBody(packages) {
   return body;
 }
 
-function getLoicAttachmentsForPackage(db, packageId, hasPackingSlip) {
+async function getLoicAttachmentsForPackage(db, packageId, hasPackingSlip) {
   const preferredType = hasPackingSlip ? 'packing_slip' : 'sticker';
-  return db.prepare('SELECT * FROM package_files WHERE package_id = ? AND file_type = ? ORDER BY uploaded_at')
+  return await db.prepare('SELECT * FROM package_files WHERE package_id = ? AND file_type = ? ORDER BY uploaded_at')
     .all(packageId, preferredType);
 }
 
-router.post('/draft', (req, res) => {
+router.post('/draft', async (req, res) => {
   try {
     const db = getDb();
     const { package_ids } = req.body;
     if (!package_ids?.length) return res.status(400).json({ error: 'No packages selected' });
 
     const placeholders = package_ids.map(() => '?').join(',');
-    const packages = db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
+    const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
     if (!packages.length) return res.status(404).json({ error: 'No packages found' });
 
     const body = buildEmailBody(packages);
     const subject = `Package Update – ${packages.length} Package${packages.length !== 1 ? 's' : ''}`;
 
     const attachmentNames = [];
-    packages.forEach(pkg => {
-      getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip).forEach(f => {
+    for (const pkg of packages) {
+      const files = await getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip);
+      files.forEach(f => {
         const fp = path.join(__dirname, '..', 'uploads', f.file_name);
         if (fs.existsSync(fp)) attachmentNames.push(f.original_name || f.file_name);
       });
-    });
+    }
 
     res.json({ subject, body, attachment_count: attachmentNames.length, package_ids });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -113,12 +114,14 @@ router.post('/send', async (req, res) => {
     const attachments = [];
     if (package_ids?.length) {
       const placeholders = package_ids.map(() => '?').join(',');
-      db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids).forEach(pkg => {
-        getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip).forEach(f => {
+      const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
+      for (const pkg of packages) {
+        const files = await getLoicAttachmentsForPackage(db, pkg.id, !!pkg.has_packing_slip);
+        files.forEach(f => {
           const fp = path.join(__dirname, '..', 'uploads', f.file_name);
           if (fs.existsSync(fp)) attachments.push({ filename: f.original_name || f.file_name, path: fp });
         });
-      });
+      }
     }
 
     await transporter.sendMail({
@@ -131,10 +134,10 @@ router.post('/send', async (req, res) => {
 
     if (package_ids?.length) {
       const now = new Date().toISOString();
-      package_ids.forEach(id => {
-        db.prepare("UPDATE packages SET loic_email_status='sent', loic_email_sent_date=?, updated_at=? WHERE id=?")
+      for (const id of package_ids) {
+        await db.prepare("UPDATE packages SET loic_email_status='sent', loic_email_sent_date=?, updated_at=? WHERE id=?")
           .run(now, now, id);
-      });
+      }
     }
 
     res.json({ success: true });

@@ -3,8 +3,47 @@ const path = require('path');
 const { Pool } = require('pg');
 
 let db;
+let adapter;
 let isPostgres = false;
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'packages.db');
+
+function convertSqlForPostgres(sql) {
+  let idx = 0;
+  return sql
+    .replace(/\?/g, () => `$${++idx}`)
+    .replace(/datetime\('now','localtime'\)/gi, 'NOW()')
+    .replace(/date\('now','localtime'\)/gi, 'CURRENT_DATE');
+}
+
+function createPostgresAdapter(pool) {
+  return {
+    prepare(sql) {
+      return {
+        async get(...params) {
+          const text = convertSqlForPostgres(sql);
+          const result = await pool.query(text, params);
+          return result.rows[0];
+        },
+        async all(...params) {
+          const text = convertSqlForPostgres(sql);
+          const result = await pool.query(text, params);
+          return result.rows;
+        },
+        async run(...params) {
+          let text = convertSqlForPostgres(sql).replace(/;\s*$/, '');
+          if (/^\s*INSERT\b/i.test(text) && !/\bRETURNING\b/i.test(text)) {
+            text += ' RETURNING id';
+          }
+          const result = await pool.query(text, params);
+          return {
+            changes: result.rowCount || 0,
+            lastInsertRowid: result.rows?.[0]?.id ?? null
+          };
+        }
+      };
+    }
+  };
+}
 
 async function initDb() {
   const dbUrl = process.env.DATABASE_URL;
@@ -69,6 +108,7 @@ async function initDb() {
         );
       `);
       console.log('[db] PostgreSQL initialized');
+      adapter = createPostgresAdapter(db);
     } finally {
       client.release();
     }
@@ -137,14 +177,15 @@ async function initDb() {
       );
     `);
     console.log('[db] SQLite initialized');
+    adapter = db;
   }
 
-  return db;
+  return adapter;
 }
 
 function getDb() {
-  if (!db) throw new Error('Database not initialized');
-  return db;
+  if (!adapter) throw new Error('Database not initialized');
+  return adapter;
 }
 
 async function closeDb() {
@@ -155,6 +196,7 @@ async function closeDb() {
       db.close();
     }
     db = null;
+    adapter = null;
   }
 }
 
