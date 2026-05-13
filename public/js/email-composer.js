@@ -18,10 +18,7 @@ async function load() {
 }
 
 function pendingPackages() {
-  return allPackages.filter(p =>
-    p.loic_email_status !== 'sent' &&
-    ['delivered','picked_up','discrepancy','awaiting_loic','confirmed'].includes(p.status)
-  );
+  return allPackages.filter(p => p.loic_email_status !== 'sent');
 }
 
 function renderCheckboxes() {
