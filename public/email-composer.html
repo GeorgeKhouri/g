@@ -68,16 +68,16 @@
 
       <button onclick="sendEmail()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-        Send via Gmail
+        📎 Send with Attachments
       </button>
-      <p class="text-xs text-slate-400 text-center">Requires Gmail App Password configured in .env</p>
+      <p class="text-xs text-slate-400 text-center">Files will be attached automatically</p>
 
       <div class="border-t border-slate-100 pt-3 space-y-2">
         <button onclick="copyText()" class="w-full border border-slate-300 text-slate-700 py-2 rounded-xl text-sm font-medium">
           Copy Email Text to Clipboard
         </button>
-        <button onclick="openMailto()" class="w-full border border-slate-300 text-slate-700 py-2 rounded-xl text-sm font-medium">
-          Open in Email Client (mailto:)
+        <button onclick="openMailto()" class="w-full border border-red-300 bg-red-50 text-red-700 py-2 rounded-xl text-sm font-medium">
+          ⚠ Open in Email Client – NO attachments
         </button>
       </div>
     </div>
