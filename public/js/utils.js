@@ -29,8 +29,16 @@ async function api(method, url, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.error || 'Request failed');
+  const raw = await r.text();
+  let data = {};
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_) {
+      data = { error: raw };
+    }
+  }
+  if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
   return data;
 }
 
