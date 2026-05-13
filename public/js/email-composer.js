@@ -59,6 +59,10 @@ function selectAll() {
   document.querySelectorAll('.pkg-check').forEach(cb => cb.checked = true);
 }
 
+function deselectAll() {
+  document.querySelectorAll('.pkg-check').forEach(cb => cb.checked = false);
+}
+
 function toggleShowAll() {
   showingAll = !showingAll;
   document.getElementById('show-all-btn').textContent = showingAll ? 'Show pending only' : 'Show all packages';

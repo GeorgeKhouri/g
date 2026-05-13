@@ -30,7 +30,10 @@
   <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
     <div class="flex items-center justify-between">
       <p class="section-title mb-0">Select Packages to Include</p>
-      <button onclick="selectAll()" class="text-xs text-blue-600">Select all</button>
+      <div class="flex items-center gap-3">
+        <button onclick="selectAll()" class="text-xs text-blue-600">Select all</button>
+        <button onclick="deselectAll()" class="text-xs text-slate-500">Deselect all</button>
+      </div>
     </div>
     <p class="text-xs text-slate-400">Showing packages that haven't been emailed yet (or all packages if you scroll down).</p>
     <div id="pkg-checkboxes" class="space-y-2"></div>
