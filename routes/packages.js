@@ -41,9 +41,9 @@ router.get('/', async (req, res) => {
     }
     if (date) { conds.push('p.date_received = ?'); params.push(date); }
     if (search) {
-      conds.push('(CAST(p.id AS TEXT) LIKE ? OR p.recipient_name LIKE ? OR p.vendor LIKE ? OR p.tracking_number LIKE ? OR p.po_number LIKE ? OR p.department LIKE ?)');
+      conds.push('(CAST(p.id AS TEXT) LIKE ? OR p.recipient_name LIKE ? OR p.vendor LIKE ? OR p.po_number LIKE ? OR p.department LIKE ?)');
       const s = `%${search}%`;
-      params.push(s, s, s, s, s, s);
+      params.push(s, s, s, s, s);
     }
     if (conds.length) query += ' WHERE ' + conds.join(' AND ');
 
@@ -73,12 +73,12 @@ router.post('/', async (req, res) => {
     const db = getDb();
     const b = req.body;
     const result = await db.prepare(`
-      INSERT INTO packages (date_received,carrier,tracking_number,vendor,recipient_name,department,po_number,
+      INSERT INTO packages (date_received,carrier,vendor,recipient_name,department,po_number,
         has_packing_slip,items_match,discrepancy_notes,package_type,requires_loic_input,status,notes,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'))
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'))
     `).run(
       b.date_received || new Date().toISOString().slice(0,10),
-      b.carrier||null, b.tracking_number||null, b.vendor||null,
+      b.carrier||null, b.vendor||null,
       b.recipient_name||null, b.department||null, b.po_number||null,
       b.has_packing_slip != null ? (b.has_packing_slip ? 1 : 0) : 1,
       b.items_match != null && b.items_match !== '' ? (b.items_match ? 1 : 0) : null,
@@ -94,7 +94,7 @@ router.put('/:id', async (req, res) => {
   try {
     const db = getDb();
     if (!await db.prepare('SELECT id FROM packages WHERE id = ?').get(req.params.id)) return res.status(404).json({ error: 'Not found' });
-    const allowed = ['date_received','carrier','tracking_number','vendor','recipient_name','department','po_number',
+    const allowed = ['date_received','carrier','vendor','recipient_name','department','po_number',
       'has_packing_slip','items_match','discrepancy_notes','package_type','requires_loic_input','status',
       'delivery_method','delivered_to_room','pickup_person_name','pickup_person_department',
       'confirmation_method','confirmed_by','confirmation_date','confirmation_notes',
