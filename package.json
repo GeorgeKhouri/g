@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "backup:now": "node scripts/backup-now.js",
-    "migrate:setup": "node scripts/migrate-postgres.js"
+    "migrate:setup": "node scripts/migrate-postgres.js",
+    "packages:reset-after": "node scripts/reset-packages-after-id.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
