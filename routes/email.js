@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
 const { getDb } = require('../db-unified');
 const { isRemoteStoredName, readStoredFile } = require('../storage');
 const SENDER_NAME = process.env.SENDER_NAME || 'George Khouri';
@@ -140,36 +139,16 @@ router.post('/draft', async (req, res) => {
 
 router.post('/send', async (req, res) => {
   try {
-    const hasGmailCreds = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
-
-    const smtpUser = hasGmailCreds ? process.env.GMAIL_USER : process.env.OUTLOOK_USER;
-    const smtpPass = hasGmailCreds ? process.env.GMAIL_APP_PASSWORD : process.env.OUTLOOK_APP_PASSWORD;
-
-    const defaultHost = hasGmailCreds ? 'smtp.gmail.com' : 'smtp.office365.com';
-    const smtpHost = process.env.SMTP_HOST || defaultHost;
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpSecure = process.env.SMTP_SECURE === 'true';
-
-    if (!smtpUser || !smtpPass) {
-      return res.status(400).json({
-        error: 'Email credentials not configured. Set GMAIL_USER/GMAIL_APP_PASSWORD or OUTLOOK_USER/OUTLOOK_APP_PASSWORD.'
-      });
+    const sendgridApiKey = process.env.SENDGRID_API_KEY;
+    if (!sendgridApiKey) {
+      return res.status(400).json({ error: 'SENDGRID_API_KEY not configured in environment variables.' });
     }
 
     const db = getDb();
     const { subject, body, package_ids, to } = req.body;
+    const fromEmail = to || process.env.LOIC_EMAIL;
 
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: { user: smtpUser, pass: smtpPass },
-      connectionTimeout: 15000,
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
-      tls: { minVersion: 'TLSv1.2' }
-    });
-
+    // Collect attachments
     const attachments = [];
     if (package_ids?.length) {
       const placeholders = package_ids.map(() => '?').join(',');
@@ -181,7 +160,12 @@ router.post('/send', async (req, res) => {
           try {
             const content = await readStoredFile(f.file_name);
             const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
-            attachments.push({ filename: labeledName, content });
+            attachments.push({
+              filename: labeledName,
+              content: content.toString('base64'),
+              type: 'application/octet-stream',
+              disposition: 'attachment'
+            });
           } catch (_) {
             // Skip unavailable files and continue sending available attachments.
           }
@@ -189,14 +173,32 @@ router.post('/send', async (req, res) => {
       }
     }
 
-    await transporter.sendMail({
-      from: `${SENDER_NAME} <${smtpUser}>`,
-      to: to || process.env.LOIC_EMAIL,
+    // Build SendGrid request
+    const sendgridPayload = {
+      personalizations: [{ to: [{ email: fromEmail }] }],
+      from: { email: process.env.GMAIL_USER || process.env.OUTLOOK_USER, name: SENDER_NAME },
       subject,
-      text: body,
+      content: [{ type: 'text/plain', value: body }],
       attachments
+    };
+
+    // Send via SendGrid API
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${sendgridApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sendgridPayload)
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMsg = errorData.errors?.[0]?.message || response.statusText;
+      return res.status(response.status).json({ error: `SendGrid API error: ${errorMsg}` });
+    }
+
+    // Mark packages as sent
     if (package_ids?.length) {
       const now = new Date().toISOString();
       for (const id of package_ids) {
@@ -207,23 +209,6 @@ router.post('/send', async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    const code = err && err.code ? err.code : null;
-    const details = err && err.command ? `${err.message} (${err.command})` : err.message;
-
-    if (code === 'ETIMEDOUT') {
-      return res.status(502).json({
-        error: 'SMTP connection timed out. Check Render egress, SMTP host/port, and provider policy.',
-        details
-      });
-    }
-
-    if (code === 'EAUTH') {
-      return res.status(401).json({
-        error: 'SMTP authentication failed. Check GMAIL_USER/GMAIL_APP_PASSWORD or OUTLOOK_USER/OUTLOOK_APP_PASSWORD.',
-        details
-      });
-    }
-
     res.status(500).json({ error: err.message });
   }
 });
