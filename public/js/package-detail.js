@@ -234,7 +234,8 @@ async function addFiles(fileType, files) {
   try {
     const fd = new FormData();
     fd.append('file_type', fileType);
-    Array.from(files).forEach(f => fd.append('files', f));
+    const prepared = await prepareFilesForUpload(files);
+    prepared.forEach(f => fd.append('files', f));
     const r = await fetch(`/api/files/package/${pkgId}`, { method: 'POST', body: fd });
     if (!r.ok) throw new Error('Upload failed');
     load();

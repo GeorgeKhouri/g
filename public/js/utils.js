@@ -92,3 +92,77 @@ function navActive(page) {
     a.classList.toggle('text-blue-200', a.dataset.page !== page);
   });
 }
+
+function replaceFileExtension(name, ext) {
+  const base = String(name || 'upload').replace(/\.[^/.]+$/, '');
+  return `${base}.${ext}`;
+}
+
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Image decode failed'));
+    };
+    img.src = url;
+  });
+}
+
+async function compressImageFileForUpload(file, options = {}) {
+  if (!(file instanceof File)) return file;
+  if (!/^image\//i.test(file.type)) return file;
+  if (/^image\/(gif|svg\+xml)$/i.test(file.type)) return file;
+
+  const maxWidth = options.maxWidth || 2200;
+  const maxHeight = options.maxHeight || 2200;
+  const quality = typeof options.quality === 'number' ? options.quality : 0.72;
+  const minSizeBytes = typeof options.minSizeBytes === 'number' ? options.minSizeBytes : (250 * 1024);
+
+  if (file.size < minSizeBytes) return file;
+
+  const img = await loadImageElement(file);
+  const scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+  const width = Math.max(1, Math.round(img.width * scale));
+  const height = Math.max(1, Math.round(img.height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+
+  // JPEG output reduces size significantly for camera photos.
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const blob = await new Promise((resolve) => {
+    canvas.toBlob(resolve, 'image/jpeg', quality);
+  });
+
+  if (!blob || blob.size >= file.size) return file;
+
+  return new File([blob], replaceFileExtension(file.name, 'jpg'), {
+    type: 'image/jpeg',
+    lastModified: Date.now()
+  });
+}
+
+async function prepareFilesForUpload(files, options = {}) {
+  const list = Array.from(files || []);
+  const output = [];
+  for (const file of list) {
+    try {
+      output.push(await compressImageFileForUpload(file, options));
+    } catch (_) {
+      output.push(file);
+    }
+  }
+  return output;
+}

@@ -130,7 +130,6 @@ async function submitPackage() {
     const payload = {
       date_received: document.getElementById('date_received').value,
       carrier: document.getElementById('carrier').value,
-      tracking_number: document.getElementById('tracking_number').value.trim(),
       vendor: document.getElementById('vendor').value.trim(),
       recipient_name: document.getElementById('recipient_name').value.trim(),
       department: document.getElementById('department').value.trim(),
@@ -165,7 +164,8 @@ async function submitPackage() {
 async function uploadFiles(packageId, files, fileType) {
   const fd = new FormData();
   fd.append('file_type', fileType);
-  files.forEach(f => fd.append('files', f));
+  const prepared = await prepareFilesForUpload(files);
+  prepared.forEach(f => fd.append('files', f));
   const r = await fetch(`/api/files/package/${packageId}`, { method: 'POST', body: fd });
   if (!r.ok) throw new Error('File upload failed');
 }
