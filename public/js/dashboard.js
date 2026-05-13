@@ -14,7 +14,7 @@ const STATUS_FILTERS = [
   { value: 'delivered',             label: 'Delivered' },
 ];
 
-let activeStatus = 'all', searchVal = '', dateVal = '', debounceTimer;
+let activeStatus = 'all', searchVal = '', dateVal = '', sortBy = 'created_at', sortOrder = 'DESC', debounceTimer;
 
 async function loadStats() {
   try {
@@ -45,6 +45,8 @@ async function loadPackages() {
     if (activeStatus !== 'all') p.set('status', activeStatus);
     if (searchVal) p.set('search', searchVal);
     if (dateVal) p.set('date', dateVal);
+    p.set('sortBy', sortBy);
+    p.set('order', sortOrder);
     renderList(await api('GET', `/api/packages?${p}`));
   } catch (e) { toast('Failed to load packages', 'error'); }
 }
@@ -96,10 +98,20 @@ document.getElementById('search').addEventListener('input', e => {
   debounceTimer = setTimeout(loadPackages, 300);
 });
 document.getElementById('date-filter').addEventListener('change', e => { dateVal = e.target.value; loadPackages(); });
+document.getElementById('sort-by').addEventListener('change', e => {
+  sortBy = e.target.value;
+  loadPackages();
+});
+document.getElementById('sort-order').addEventListener('change', e => {
+  sortOrder = e.target.value;
+  loadPackages();
+});
 document.getElementById('clear-btn').addEventListener('click', () => {
-  searchVal = ''; dateVal = ''; activeStatus = 'all';
+  searchVal = ''; dateVal = ''; activeStatus = 'all'; sortBy = 'created_at'; sortOrder = 'DESC';
   document.getElementById('search').value = '';
   document.getElementById('date-filter').value = '';
+  document.getElementById('sort-by').value = 'created_at';
+  document.getElementById('sort-order').value = 'DESC';
   buildChips(); loadPackages();
 });
 

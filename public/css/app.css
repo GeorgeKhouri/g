@@ -110,6 +110,15 @@ input:disabled + .toggle-slider { opacity: 0.6; cursor: default; }
 .status-chip:hover { background: #f8fafc; border-color: #cbd5e1; }
 .status-chip.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
 
+/* ── Dashboard filters ── */
+.dashboard-filters { flex-wrap: wrap; }
+.dashboard-filters .form-input,
+.dashboard-filters button { min-height: 40px; }
+
+@media (min-width: 1024px) {
+  .dashboard-filters { flex-wrap: nowrap; }
+}
+
 /* ── Toast ── */
 #toast { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%) translateY(10px); background: #1e293b; color: white; padding: 10px 22px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
 #toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
