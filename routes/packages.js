@@ -23,7 +23,7 @@ router.get('/stats', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const db = getDb();
-    const { status, date, search } = req.query;
+    const { status, date, search, sortBy, order } = req.query; // Added sortBy and order query parameters
     let query = 'SELECT p.*, (SELECT COUNT(*) FROM package_files pf WHERE pf.package_id = p.id) as file_count FROM packages p';
     const params = [];
     const conds = [];
@@ -46,7 +46,14 @@ router.get('/', async (req, res) => {
       params.push(s, s, s, s, s, s);
     }
     if (conds.length) query += ' WHERE ' + conds.join(' AND ');
-    query += ' ORDER BY p.date_received DESC, p.created_at DESC';
+
+    // Add sorting logic
+    const validSortBy = ['created_at', 'id'];
+    const validOrder = ['ASC', 'DESC'];
+    const sortColumn = validSortBy.includes(sortBy) ? sortBy : 'created_at';
+    const sortOrder = validOrder.includes(order) ? order : 'DESC';
+    query += ` ORDER BY p.${sortColumn} ${sortOrder}`;
+
     res.json(await db.prepare(query).all(...params));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
