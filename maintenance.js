@@ -78,4 +78,22 @@ async function runOneTimePackageCutoffCleanup(cutoffId = 17) {
   };
 }
 
-module.exports = { runOneTimePackageCutoffCleanup };
+module.exports = { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages };
+
+async function clearTrackingNumbersFromExistingPackages() {
+  const db = getDb();
+  const runKey = 'clear_tracking_numbers_v1';
+
+  await ensureMaintenanceTable(db);
+  if (await wasRun(db, runKey)) {
+    return { skipped: true, reason: 'already_ran' };
+  }
+
+  const result = await db.prepare('UPDATE packages SET tracking_number = NULL').run();
+  await markRun(db, runKey);
+
+  return {
+    skipped: false,
+    clearedPackages: result?.changes || 0
+  };
+}

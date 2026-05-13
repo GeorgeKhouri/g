@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const { initDb, getDb, closeDb } = require('./db-unified');
 const { scheduleBackups } = require('./backup');
-const { runOneTimePackageCutoffCleanup } = require('./maintenance');
+const { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages } = require('./maintenance');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +29,18 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   } catch (err) {
     console.error('[maintenance] package cutoff cleanup failed:', err.message);
   }
+
+  try {
+    const tracking = await clearTrackingNumbersFromExistingPackages();
+    if (tracking.skipped) {
+      console.log(`[maintenance] tracking number clearing skipped: ${tracking.reason}`);
+    } else {
+      console.log(`[maintenance] tracking number clearing applied: cleared=${tracking.clearedPackages}`);
+    }
+  } catch (err) {
+    console.error('[maintenance] tracking number clearing failed:', err.message);
+  }
+
   scheduleBackups();
 
   app.use(express.json());
