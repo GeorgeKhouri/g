@@ -189,10 +189,16 @@ router.post('/send', async (req, res) => {
       }
     }
 
+    const copyToSender = String(process.env.SENDGRID_COPY_TO_SENDER || 'true').toLowerCase() === 'true';
+
     // Build SendGrid request
     const sendgridPayload = {
-      personalizations: [{ to: [{ email: toEmail }] }],
+      personalizations: [{
+        to: [{ email: toEmail }],
+        ...(copyToSender ? { bcc: [{ email: fromEmail }] } : {})
+      }],
       from: { email: fromEmail, name: SENDER_NAME },
+      reply_to: { email: fromEmail },
       subject,
       content: [{ type: 'text/plain', value: body }],
       attachments
