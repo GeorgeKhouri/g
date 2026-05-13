@@ -9,6 +9,8 @@ body {
 
 /* ── Header ── */
 .app-header { background: #1e3a8a; color: white; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.app-logo { color: #fff; font-weight: 700; font-size: 1.35rem; letter-spacing: -0.01em; text-decoration: none; line-height: 1; }
+.app-logo:hover { color: #dbeafe; }
 
 /* ── Cards ── */
 .card { background: white; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04); padding: 20px; }
