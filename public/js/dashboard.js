@@ -14,7 +14,12 @@ const STATUS_FILTERS = [
   { value: 'delivered',             label: 'Delivered' },
 ];
 
-let activeStatus = 'all', searchVal = '', dateVal = '', sortBy = 'created_at', sortOrder = 'DESC', debounceTimer;
+let activeStatus = 'all', searchVal = '', dateVal = '', sortMode = 'created_at_DESC', debounceTimer;
+
+function getSortParams() {
+  const [sortBy, sortOrder] = sortMode.split('_');
+  return { sortBy, sortOrder };
+}
 
 async function loadStats() {
   try {
@@ -42,6 +47,7 @@ function setStatusFilter(val) { activeStatus = val; buildChips(); loadPackages()
 async function loadPackages() {
   try {
     const p = new URLSearchParams();
+    const { sortBy, sortOrder } = getSortParams();
     if (activeStatus !== 'all') p.set('status', activeStatus);
     if (searchVal) p.set('search', searchVal);
     if (dateVal) p.set('date', dateVal);
@@ -98,20 +104,15 @@ document.getElementById('search').addEventListener('input', e => {
   debounceTimer = setTimeout(loadPackages, 300);
 });
 document.getElementById('date-filter').addEventListener('change', e => { dateVal = e.target.value; loadPackages(); });
-document.getElementById('sort-by').addEventListener('change', e => {
-  sortBy = e.target.value;
-  loadPackages();
-});
-document.getElementById('sort-order').addEventListener('change', e => {
-  sortOrder = e.target.value;
+document.getElementById('sort-mode').addEventListener('change', e => {
+  sortMode = e.target.value;
   loadPackages();
 });
 document.getElementById('clear-btn').addEventListener('click', () => {
-  searchVal = ''; dateVal = ''; activeStatus = 'all'; sortBy = 'created_at'; sortOrder = 'DESC';
+  searchVal = ''; dateVal = ''; activeStatus = 'all'; sortMode = 'created_at_DESC';
   document.getElementById('search').value = '';
   document.getElementById('date-filter').value = '';
-  document.getElementById('sort-by').value = 'created_at';
-  document.getElementById('sort-order').value = 'DESC';
+  document.getElementById('sort-mode').value = 'created_at_DESC';
   buildChips(); loadPackages();
 });
 
