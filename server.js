@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const { initDb, getDb, closeDb } = require('./db-unified');
 const { scheduleBackups } = require('./backup');
+const { runOneTimePackageCutoffCleanup } = require('./maintenance');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,16 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
   await initDb();
+  try {
+    const cleanup = await runOneTimePackageCutoffCleanup(17);
+    if (cleanup.skipped) {
+      console.log(`[maintenance] package cutoff cleanup skipped: ${cleanup.reason}`);
+    } else {
+      console.log(`[maintenance] package cutoff cleanup applied: deleted=${cleanup.deletedPackages}, next=${cleanup.nextPackageId}`);
+    }
+  } catch (err) {
+    console.error('[maintenance] package cutoff cleanup failed:', err.message);
+  }
   scheduleBackups();
 
   app.use(express.json());
