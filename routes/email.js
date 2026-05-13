@@ -140,14 +140,20 @@ router.post('/draft', async (req, res) => {
 
 router.post('/send', async (req, res) => {
   try {
-    const smtpUser = process.env.OUTLOOK_USER || process.env.GMAIL_USER;
-    const smtpPass = process.env.OUTLOOK_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD;
-    const smtpHost = process.env.SMTP_HOST || 'smtp.office365.com';
+    const hasGmailCreds = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+
+    const smtpUser = hasGmailCreds ? process.env.GMAIL_USER : process.env.OUTLOOK_USER;
+    const smtpPass = hasGmailCreds ? process.env.GMAIL_APP_PASSWORD : process.env.OUTLOOK_APP_PASSWORD;
+
+    const defaultHost = hasGmailCreds ? 'smtp.gmail.com' : 'smtp.office365.com';
+    const smtpHost = process.env.SMTP_HOST || defaultHost;
     const smtpPort = Number(process.env.SMTP_PORT || 587);
     const smtpSecure = process.env.SMTP_SECURE === 'true';
 
     if (!smtpUser || !smtpPass) {
-      return res.status(400).json({ error: 'Email credentials not configured. Set OUTLOOK_USER and OUTLOOK_APP_PASSWORD in .env.' });
+      return res.status(400).json({
+        error: 'Email credentials not configured. Set GMAIL_USER/GMAIL_APP_PASSWORD or OUTLOOK_USER/OUTLOOK_APP_PASSWORD.'
+      });
     }
 
     const db = getDb();
@@ -213,7 +219,7 @@ router.post('/send', async (req, res) => {
 
     if (code === 'EAUTH') {
       return res.status(401).json({
-        error: 'SMTP authentication failed. Check OUTLOOK_USER/OUTLOOK_APP_PASSWORD.',
+        error: 'SMTP authentication failed. Check GMAIL_USER/GMAIL_APP_PASSWORD or OUTLOOK_USER/OUTLOOK_APP_PASSWORD.',
         details
       });
     }
