@@ -139,17 +139,27 @@ router.post('/draft', async (req, res) => {
 
 router.post('/send', async (req, res) => {
   try {
-    const sendgridApiKey = process.env.SENDGRID_API_KEY;
+    const sendgridApiKey = (process.env.SENDGRID_API_KEY || '').trim();
     if (!sendgridApiKey) {
       return res.status(400).json({ error: 'SENDGRID_API_KEY not configured in environment variables.' });
     }
 
     const db = getDb();
     const { subject, body, package_ids, to } = req.body;
-    const fromEmail = to || process.env.LOIC_EMAIL;
+    const toEmail = (to || process.env.LOIC_EMAIL || '').trim();
+    const fromEmail = (process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || process.env.OUTLOOK_USER || '').trim();
+
+    if (!toEmail) {
+      return res.status(400).json({ error: 'Recipient email is missing. Set LOIC_EMAIL or provide a To address.' });
+    }
+    if (!fromEmail) {
+      return res.status(400).json({ error: 'Sender email is missing. Set SENDGRID_FROM_EMAIL or GMAIL_USER/OUTLOOK_USER.' });
+    }
 
     // Collect attachments
     const attachments = [];
+    let totalAttachmentBytes = 0;
+    const maxAttachmentBytes = 20 * 1024 * 1024;
     if (package_ids?.length) {
       const placeholders = package_ids.map(() => '?').join(',');
       const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
@@ -160,6 +170,12 @@ router.post('/send', async (req, res) => {
           try {
             const content = await readStoredFile(f.file_name);
             const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
+            totalAttachmentBytes += content.length;
+            if (totalAttachmentBytes > maxAttachmentBytes) {
+              return res.status(413).json({
+                error: 'Total attachment size is too large for one email. Send fewer packages/files at a time.'
+              });
+            }
             attachments.push({
               filename: labeledName,
               content: content.toString('base64'),
@@ -175,27 +191,43 @@ router.post('/send', async (req, res) => {
 
     // Build SendGrid request
     const sendgridPayload = {
-      personalizations: [{ to: [{ email: fromEmail }] }],
-      from: { email: process.env.GMAIL_USER || process.env.OUTLOOK_USER, name: SENDER_NAME },
+      personalizations: [{ to: [{ email: toEmail }] }],
+      from: { email: fromEmail, name: SENDER_NAME },
       subject,
       content: [{ type: 'text/plain', value: body }],
       attachments
     };
 
     // Send via SendGrid API
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${sendgridApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(sendgridPayload)
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+    let response;
+    try {
+      response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sendgridApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sendgridPayload),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.errors?.[0]?.message || response.statusText;
-      return res.status(response.status).json({ error: `SendGrid API error: ${errorMsg}` });
+      const raw = await response.text();
+      let errorMsg = response.statusText;
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          errorMsg = parsed?.errors?.[0]?.message || raw;
+        } catch (_) {
+          errorMsg = raw;
+        }
+      }
+      return res.status(502).json({ error: `SendGrid request failed (${response.status}): ${errorMsg}` });
     }
 
     // Mark packages as sent
@@ -209,6 +241,10 @@ router.post('/send', async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    if (err && err.name === 'AbortError') {
+      return res.status(504).json({ error: 'SendGrid request timed out. Try sending fewer attachments at once.' });
+    }
+    console.error('[email/send] error:', err);
     res.status(500).json({ error: err.message });
   }
 });
