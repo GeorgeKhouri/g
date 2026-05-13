@@ -84,7 +84,7 @@ function buildEmailBody(packages) {
     body += '\n';
   });
 
-  body += `${'─'.repeat(52)}\n\nPlease let me know if you have any questions or if something isn't clear. I will be waiting delivery instructions for these packages and/or the person to contact regarding each package.\n\nThank you,\n${SENDER_NAME}`;
+  body += `${'─'.repeat(52)}\n\nPlease let me know if you have any questions or if something isn't clear. I will be waiting for delivery instructions for these packages and/or the person to contact regarding each package.\n\nThank you,\n${SENDER_NAME}`;
   return body;
 }
 
