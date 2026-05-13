@@ -48,14 +48,21 @@ function confirm2(msg) {
   return window.confirm(msg);
 }
 
+function filePublicUrl(file) {
+  const name = String(file?.file_name || '');
+  if (/^https?:\/\//i.test(name)) return name;
+  return `/uploads/${name}`;
+}
+
 function fileThumb(file, onDelete) {
   const isImg = /\.(jpe?g|png|gif|heic|heif|webp)$/i.test(file.original_name || file.file_name);
+  const url = filePublicUrl(file);
   const div = document.createElement('div');
   div.className = 'file-thumb';
   if (isImg) {
-    div.innerHTML = `<img src="/uploads/${file.file_name}" loading="lazy" onclick="window.open('/uploads/${file.file_name}','_blank')">`;
+    div.innerHTML = `<img src="${url}" loading="lazy" onclick="window.open('${url}','_blank')">`;
   } else {
-    div.innerHTML = `<div class="pdf-icon" onclick="window.open('/uploads/${file.file_name}','_blank')" style="cursor:pointer">📄</div>`;
+    div.innerHTML = `<div class="pdf-icon" onclick="window.open('${url}','_blank')" style="cursor:pointer">📄</div>`;
   }
   if (onDelete) {
     const btn = document.createElement('button');

@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const { getDb } = require('../db-unified');
+const { deleteStoredFile } = require('../storage');
 
 router.get('/', async (req, res) => {
   try {
@@ -51,10 +50,9 @@ router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
     const files = await db.prepare('SELECT * FROM non_po_files WHERE item_id = ?').all(req.params.id);
-    files.forEach(f => {
-      const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    });
+    for (const f of files) {
+      await deleteStoredFile(f.file_name);
+    }
     await db.prepare('DELETE FROM non_po_items WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }

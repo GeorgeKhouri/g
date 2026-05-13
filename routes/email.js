@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
-const path = require('path');
-const fs = require('fs');
 const { getDb } = require('../db-unified');
+const { isRemoteStoredName, readStoredFile } = require('../storage');
 const SENDER_NAME = process.env.SENDER_NAME || 'George Khouri';
 
 function fmtDate(d) {
@@ -118,13 +117,21 @@ router.post('/draft', async (req, res) => {
     const attachmentNames = [];
     for (const pkg of packages) {
       const files = await getLoicAttachmentsForPackage(db, pkg.id);
-      files.forEach((f, idx) => {
-        const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-        if (fs.existsSync(fp)) {
+      for (let idx = 0; idx < files.length; idx += 1) {
+        const f = files[idx];
+        if (isRemoteStoredName(f.file_name)) {
           const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
           attachmentNames.push(labeledName);
+          continue;
         }
-      });
+        try {
+          await readStoredFile(f.file_name);
+          const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
+          attachmentNames.push(labeledName);
+        } catch (_) {
+          // Skip missing local files to keep draft generation resilient.
+        }
+      }
     }
 
     res.json({ subject, body, attachment_count: attachmentNames.length, package_ids });
@@ -163,13 +170,16 @@ router.post('/send', async (req, res) => {
       const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
       for (const pkg of packages) {
         const files = await getLoicAttachmentsForPackage(db, pkg.id);
-        files.forEach((f, idx) => {
-          const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-          if (fs.existsSync(fp)) {
+        for (let idx = 0; idx < files.length; idx += 1) {
+          const f = files[idx];
+          try {
+            const content = await readStoredFile(f.file_name);
             const labeledName = buildAttachmentFilename(pkg.id, f, idx + 1);
-            attachments.push({ filename: labeledName, path: fp });
+            attachments.push({ filename: labeledName, content });
+          } catch (_) {
+            // Skip unavailable files and continue sending available attachments.
           }
-        });
+        }
       }
     }
 

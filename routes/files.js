@@ -2,18 +2,11 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { getDb } = require('../db-unified');
-
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname));
-  }
-});
+const { uploadIncomingFile, deleteStoredFile } = require('../storage');
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/\.(jpe?g|png|gif|pdf|heic|heif|webp)$/i.test(file.originalname)) cb(null, true);
@@ -32,6 +25,7 @@ router.post('/package/:packageId', upload.array('files', 20), async (req, res) =
     let stickerIndex = 0;
     const inserted = [];
     for (const file of req.files) {
+      const storedName = await uploadIncomingFile(file, { scope: 'packages', ownerId: packageId });
       let originalName = file.originalname;
       if (fileType === 'packing_slip') {
         packingSlipIndex += 1;
@@ -45,8 +39,8 @@ router.post('/package/:packageId', upload.array('files', 20), async (req, res) =
         originalName = `Package ${packageId}_ Outside Sticker${suffix}${ext}`;
       }
       const r = await db.prepare('INSERT INTO package_files (package_id,file_type,file_name,original_name) VALUES (?,?,?,?)')
-        .run(packageId, fileType, file.filename, originalName);
-      inserted.push({ id: r.lastInsertRowid, file_type: fileType, file_name: file.filename, original_name: originalName });
+        .run(packageId, fileType, storedName, originalName);
+      inserted.push({ id: r.lastInsertRowid, file_type: fileType, file_name: storedName, original_name: originalName });
     }
     res.json(inserted);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -59,9 +53,10 @@ router.post('/nonpo/:itemId', upload.array('files', 20), async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     const inserted = [];
     for (const file of req.files) {
+      const storedName = await uploadIncomingFile(file, { scope: 'nonpo', ownerId: req.params.itemId });
       const r = await db.prepare('INSERT INTO non_po_files (item_id,file_name,original_name) VALUES (?,?,?)')
-        .run(req.params.itemId, file.filename, file.originalname);
-      inserted.push({ id: r.lastInsertRowid, file_name: file.filename, original_name: file.originalname });
+        .run(req.params.itemId, storedName, file.originalname);
+      inserted.push({ id: r.lastInsertRowid, file_name: storedName, original_name: file.originalname });
     }
     res.json(inserted);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -72,8 +67,7 @@ router.delete('/:fileId', async (req, res) => {
     const db = getDb();
     const file = await db.prepare('SELECT * FROM package_files WHERE id = ?').get(req.params.fileId);
     if (!file) return res.status(404).json({ error: 'File not found' });
-    const fp = path.join(__dirname, '..', 'uploads', file.file_name);
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    await deleteStoredFile(file.file_name);
     await db.prepare('DELETE FROM package_files WHERE id = ?').run(req.params.fileId);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -84,8 +78,7 @@ router.delete('/nonpo/:fileId', async (req, res) => {
     const db = getDb();
     const file = await db.prepare('SELECT * FROM non_po_files WHERE id = ?').get(req.params.fileId);
     if (!file) return res.status(404).json({ error: 'File not found' });
-    const fp = path.join(__dirname, '..', 'uploads', file.file_name);
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    await deleteStoredFile(file.file_name);
     await db.prepare('DELETE FROM non_po_files WHERE id = ?').run(req.params.fileId);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }

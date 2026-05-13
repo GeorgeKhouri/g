@@ -105,13 +105,11 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const db = getDb();
-    const path = require('path');
-    const fs = require('fs');
+    const { deleteStoredFile } = require('../storage');
     const files = await db.prepare('SELECT * FROM package_files WHERE package_id = ?').all(req.params.id);
-    files.forEach(f => {
-      const fp = path.join(__dirname, '..', 'uploads', f.file_name);
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    });
+    for (const f of files) {
+      await deleteStoredFile(f.file_name);
+    }
     await db.prepare('DELETE FROM packages WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
