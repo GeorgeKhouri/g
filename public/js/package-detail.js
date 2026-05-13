@@ -36,7 +36,6 @@ function render(p) {
   // Info fields
   document.getElementById('date_received').value = p.date_received || '';
   document.getElementById('carrier').value = p.carrier || '';
-  document.getElementById('tracking_number').value = p.tracking_number || '';
   document.getElementById('vendor').value = p.vendor || '';
   document.getElementById('recipient_name').value = p.recipient_name || '';
   document.getElementById('department').value = p.department || '';
@@ -107,7 +106,7 @@ function renderFiles(files) {
 
 function toggleEdit() {
   editMode = !editMode;
-  const fields = ['date_received','carrier','tracking_number','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'];
+  const fields = ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'];
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = !editMode;
@@ -124,7 +123,7 @@ function cancelEdit() {
   document.getElementById('edit-toggle').textContent = 'Edit';
   document.getElementById('save-bar').classList.add('hidden');
   // Re-disable fields
-  ['date_received','carrier','tracking_number','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
+  ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = true;
   });
@@ -167,7 +166,6 @@ async function saveInfo() {
     const payload = {
       date_received: document.getElementById('date_received').value,
       carrier: document.getElementById('carrier').value,
-      tracking_number: document.getElementById('tracking_number').value.trim(),
       vendor: document.getElementById('vendor').value.trim(),
       recipient_name: document.getElementById('recipient_name').value.trim(),
       department: document.getElementById('department').value.trim(),
@@ -184,7 +182,7 @@ async function saveInfo() {
     render(currentPkg);
     document.getElementById('edit-toggle').textContent = 'Edit';
     document.getElementById('save-bar').classList.add('hidden');
-    ['date_received','carrier','tracking_number','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
+    ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.disabled = true;
     });
