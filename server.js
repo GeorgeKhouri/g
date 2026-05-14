@@ -19,16 +19,17 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
   await initDb();
-  try {
-    const cleanup = await runOneTimePackageCutoffCleanup(17);
-    if (cleanup.skipped) {
-      console.log(`[maintenance] package cutoff cleanup skipped: ${cleanup.reason}`);
-    } else {
-      console.log(`[maintenance] package cutoff cleanup applied: deleted=${cleanup.deletedPackages}, next=${cleanup.nextPackageId}`);
-    }
-  } catch (err) {
-    console.error('[maintenance] package cutoff cleanup failed:', err.message);
-  }
+  // DISABLED: Package cutoff cleanup was deleting packages > 17
+  // try {
+  //   const cleanup = await runOneTimePackageCutoffCleanup(17);
+  //   if (cleanup.skipped) {
+  //     console.log(`[maintenance] package cutoff cleanup skipped: ${cleanup.reason}`);
+  //   } else {
+  //     console.log(`[maintenance] package cutoff cleanup applied: deleted=${cleanup.deletedPackages}, next=${cleanup.nextPackageId}`);
+  //   }
+  // } catch (err) {
+  //   console.error('[maintenance] package cutoff cleanup failed:', err.message);
+  // }
 
   try {
     const tracking = await clearTrackingNumbersFromExistingPackages();
