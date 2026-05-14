@@ -93,11 +93,6 @@ function navActive(page) {
   });
 }
 
-function replaceFileExtension(name, ext) {
-  const base = String(name || 'upload').replace(/\.[^/.]+$/, '');
-  return `${base}.${ext}`;
-}
-
 function loadImageElement(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -114,10 +109,97 @@ function loadImageElement(file) {
   });
 }
 
+function initAutocomplete(inputId, allOptions = []) {
+  const inputEl = document.getElementById(inputId);
+  if (!inputEl) return;
+
+  // Wrap input in autocomplete container
+  const container = document.createElement('div');
+  container.className = 'autocomplete-container';
+  inputEl.parentNode.insertBefore(container, inputEl);
+  container.appendChild(inputEl);
+
+  // Create dropdown
+  const dropdown = document.createElement('div');
+  dropdown.className = 'autocomplete-dropdown';
+  container.appendChild(dropdown);
+
+  let selectedIdx = -1;
+
+  function filter() {
+    const query = inputEl.value.toLowerCase().trim();
+    const filtered = query
+      ? allOptions.filter(opt => String(opt || '').toLowerCase().includes(query))
+      : allOptions;
+
+    dropdown.innerHTML = '';
+    if (!query || filtered.length === 0) {
+      dropdown.classList.remove('show');
+      selectedIdx = -1;
+      return;
+    }
+
+    filtered.forEach((opt, idx) => {
+      const div = document.createElement('div');
+      div.className = 'autocomplete-option';
+      div.textContent = opt;
+      div.onclick = () => {
+        inputEl.value = opt;
+        dropdown.classList.remove('show');
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      dropdown.appendChild(div);
+    });
+
+    dropdown.classList.add('show');
+    selectedIdx = -1;
+  }
+
+  inputEl.addEventListener('input', filter);
+  inputEl.addEventListener('focus', filter);
+
+  inputEl.addEventListener('keydown', (e) => {
+    const options = dropdown.querySelectorAll('.autocomplete-option');
+    if (!options.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIdx = Math.min(selectedIdx + 1, options.length - 1);
+      updateSelected(options);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIdx = Math.max(selectedIdx - 1, -1);
+      updateSelected(options);
+    } else if (e.key === 'Enter' && selectedIdx >= 0) {
+      e.preventDefault();
+      inputEl.value = options[selectedIdx].textContent;
+      dropdown.classList.remove('show');
+      inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+
+  function updateSelected(options) {
+    options.forEach((opt, idx) => {
+      opt.classList.toggle('selected', idx === selectedIdx);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+
 async function compressImageFileForUpload(file, options = {}) {
   if (!(file instanceof File)) return file;
   if (!/^image\//i.test(file.type)) return file;
   if (/^image\/(gif|svg\+xml)$/i.test(file.type)) return file;
+
+  function replaceFileExtension(name, ext) {
+    const base = String(name || 'upload').replace(/\.[^/.]+$/, '');
+    return `${base}.${ext}`;
+  }
 
   const maxWidth = options.maxWidth || 2200;
   const maxHeight = options.maxHeight || 2200;

@@ -23,24 +23,18 @@ function uniqueRecentValues(rows, field, max = 100) {
   return values;
 }
 
-function setDatalistOptions(datalistId, values) {
-  const list = document.getElementById(datalistId);
-  if (!list) return;
-  list.innerHTML = values.map(v => `<option value="${v.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"></option>`).join('');
-}
-
 async function initHistorySuggestions() {
   try {
     const rows = await api('GET', '/api/packages');
     if (!Array.isArray(rows) || !rows.length) return;
 
-    // Keep the first seen value from recent rows so suggestions reflect latest wording.
-    setDatalistOptions('vendor-options', uniqueRecentValues(rows, 'vendor'));
-    setDatalistOptions('recipient-options', uniqueRecentValues(rows, 'recipient_name'));
-    setDatalistOptions('department-options', uniqueRecentValues(rows, 'department'));
-    setDatalistOptions('po-options', uniqueRecentValues(rows, 'po_number'));
+    const vendorOpts = uniqueRecentValues(rows, 'vendor');
+    const recipientOpts = uniqueRecentValues(rows, 'recipient_name');
+    const departmentOpts = uniqueRecentValues(rows, 'department');
+    const poOpts = uniqueRecentValues(rows, 'po_number');
 
-    const carrierDefaults = Array.from(document.querySelectorAll('#carrier-options option')).map(o => o.value);
+    // Carrier defaults (most common ones first)
+    const carrierDefaults = ['FedEx', 'UPS', 'Purolator', 'Canada Post', 'Canpar', 'DHL', 'Amazon', 'GLS', 'Nationex'];
     const carrierHistory = uniqueRecentValues(rows, 'carrier');
     const mergedCarriers = [];
     const seenCarrier = new Set();
@@ -50,7 +44,13 @@ async function initHistorySuggestions() {
       seenCarrier.add(key);
       mergedCarriers.push(v);
     });
-    setDatalistOptions('carrier-options', mergedCarriers);
+
+    // Initialize autocomplete for each field
+    initAutocomplete('vendor', vendorOpts);
+    initAutocomplete('recipient_name', recipientOpts);
+    initAutocomplete('department', departmentOpts);
+    initAutocomplete('po_number', poOpts);
+    initAutocomplete('carrier', mergedCarriers);
   } catch (e) {
     // Suggestions are optional; form should still work if this fails.
     console.warn('Could not load history suggestions', e);
