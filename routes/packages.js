@@ -112,8 +112,8 @@ router.post('/', async (req, res) => {
     const b = req.body;
     const result = await db.prepare(`
       INSERT INTO packages (date_received,carrier,vendor,recipient_name,department,po_number,
-        has_packing_slip,items_match,discrepancy_notes,package_type,requires_loic_input,status,notes,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'))
+        has_packing_slip,items_match,discrepancy_notes,package_type,requires_loic_input,status,notes,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       b.date_received || new Date().toISOString().slice(0,10),
       b.carrier||null, b.vendor||null,
@@ -122,7 +122,8 @@ router.post('/', async (req, res) => {
       b.items_match != null && b.items_match !== '' ? (b.items_match ? 1 : 0) : null,
       b.discrepancy_notes||null, b.package_type||'standard',
       b.requires_loic_input ? 1 : 0,
-      b.status||'received', b.notes||null
+      b.status||'received', b.notes||null,
+      new Date().toISOString(), new Date().toISOString()
     );
     res.json(normalizePlaceholderPackage(await db.prepare('SELECT * FROM packages WHERE id = ?').get(result.lastInsertRowid)));
   } catch (err) { res.status(500).json({ error: err.message }); }
