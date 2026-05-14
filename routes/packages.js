@@ -8,7 +8,9 @@ router.get('/stats', async (req, res) => {
     const statuses = ['received','awaiting_loic','discrepancy','ready','contacted','awaiting_confirmation','confirmed','delivered','picked_up','closed'];
     const stats = {};
     for (const s of statuses) {
-      const row = await db.prepare('SELECT COUNT(*) as c FROM packages WHERE status = ?').get(s);
+      const row = s === 'awaiting_loic'
+        ? await db.prepare("SELECT COUNT(*) as c FROM packages WHERE status = ? OR loic_email_status = 'sent'").get(s)
+        : await db.prepare('SELECT COUNT(*) as c FROM packages WHERE status = ?').get(s);
       stats[s] = row?.c || 0;
     }
     stats.delivered += stats.ready + stats.picked_up + stats.confirmed;
@@ -31,6 +33,9 @@ router.get('/', async (req, res) => {
       if (status === 'awaiting_confirmation') {
         conds.push('(p.status = ? OR p.status = ?)');
         params.push('awaiting_confirmation', 'contacted');
+      } else if (status === 'awaiting_loic') {
+        conds.push('(p.status = ? OR p.loic_email_status = ?)');
+        params.push('awaiting_loic', 'sent');
       } else if (status === 'delivered') {
         conds.push('(p.status = ? OR p.status = ? OR p.status = ? OR p.status = ?)');
         params.push('delivered', 'ready', 'picked_up', 'confirmed');
