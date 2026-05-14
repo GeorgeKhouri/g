@@ -145,7 +145,13 @@
       <input id="delivered_to_room" type="text" class="form-input" placeholder="e.g. Room 204, Building B">
     </div>
     <div id="pickup-fields" class="hidden space-y-3">
-      <div><label class="form-label">Full Name of Person Who Picked Up</label><input id="pickup_person_name" type="text" class="form-input"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <label class="form-label" style="margin:0;">Full Name of Person Who Received It</label>
+          <button type="button" onclick="useRecipientForDelivery()" class="btn btn-outline" style="padding:6px 10px;font-size:0.75rem;line-height:1;">Use Recipient Name</button>
+        </div>
+        <input id="pickup_person_name" type="text" class="form-input" placeholder="Type name or use recipient">
+      </div>
       <div><label class="form-label">Department</label><input id="pickup_person_department" type="text" class="form-input"></div>
     </div>
     <button onclick="saveDelivery()" class="btn btn-green btn-full">Save Delivery Info</button>

@@ -50,6 +50,7 @@ async function initHistorySuggestions() {
     initAutocomplete('department', departmentOpts);
     initAutocomplete('po_number', poOpts);
     initAutocomplete('carrier', mergedCarriers);
+    initAutocomplete('pickup_person_name', recipientOpts);
   } catch (e) {
     console.warn('Could not load history suggestions', e);
   }
@@ -219,7 +220,14 @@ function toggleDiscrepancyField() {
 function toggleDeliveryFields() {
   const m = document.getElementById('delivery_method').value;
   document.getElementById('room-field').classList.toggle('hidden', m !== 'delivered');
-  document.getElementById('pickup-fields').classList.toggle('hidden', m !== 'picked_up');
+  document.getElementById('pickup-fields').classList.toggle('hidden', !m);
+}
+
+function useRecipientForDelivery() {
+  const recipient = document.getElementById('recipient_name')?.value?.trim() || '';
+  const dept = document.getElementById('department')?.value?.trim() || '';
+  if (recipient) document.getElementById('pickup_person_name').value = recipient;
+  if (dept) document.getElementById('pickup_person_department').value = dept;
 }
 
 async function quickSave() {
