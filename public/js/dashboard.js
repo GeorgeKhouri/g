@@ -44,6 +44,11 @@ function buildChips() {
 
 function setStatusFilter(val) { activeStatus = val; buildChips(); loadPackages(); }
 
+function refreshDashboard() {
+  loadStats();
+  loadPackages();
+}
+
 async function loadPackages() {
   try {
     const p = new URLSearchParams();
@@ -114,6 +119,21 @@ document.getElementById('clear-btn').addEventListener('click', () => {
   document.getElementById('date-filter').value = '';
   document.getElementById('sort-mode').value = 'created_at_DESC';
   buildChips(); loadPackages();
+});
+
+window.addEventListener('storage', e => {
+  if (e.key === 'packages:refresh') {
+    refreshDashboard();
+  }
+});
+
+window.addEventListener('focus', refreshDashboard);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshDashboard();
+});
+
+window.addEventListener('pageshow', e => {
+  if (e.persisted) refreshDashboard();
 });
 
 buildChips(); loadStats(); loadPackages();

@@ -105,6 +105,7 @@ async function sendEmail() {
       package_ids: lastDraft.package_ids,
     });
     toast('Email sent!', 'success');
+    localStorage.setItem('packages:refresh', String(Date.now()));
     load();
     document.getElementById('preview-section').classList.add('hidden');
     lastDraft = null;
