@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const { initDb, getDb, closeDb } = require('./db-unified');
 const { scheduleBackups } = require('./backup');
-const { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages } = require('./maintenance');
+const { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages, restoreMissingPackages18To28 } = require('./maintenance');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +40,17 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     }
   } catch (err) {
     console.error('[maintenance] tracking number clearing failed:', err.message);
+  }
+
+  try {
+    const restore = await restoreMissingPackages18To28();
+    if (restore.skipped) {
+      console.log(`[maintenance] package 18-28 restore skipped: ${restore.reason}`);
+    } else {
+      console.log(`[maintenance] package 18-28 restore applied: restored=${restore.restoredPackages}`);
+    }
+  } catch (err) {
+    console.error('[maintenance] package 18-28 restore failed:', err.message);
   }
 
   scheduleBackups();
