@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { getDb } = require('../db-unified');
 
+function normalizePlaceholderPackage(pkg) {
+  if (!pkg) return pkg;
+  const isPlaceholder = String(pkg.vendor || '').trim() === 'PLACEHOLDER' || String(pkg.recipient_name || '').trim() === 'PLACEHOLDER';
+  if (!isPlaceholder) return pkg;
+  return {
+    ...pkg,
+    date_received: '',
+    notes: null,
+  };
+}
+
 router.get('/stats', async (req, res) => {
   try {
     const db = getDb();
@@ -59,7 +70,8 @@ router.get('/', async (req, res) => {
     const sortOrder = validOrder.includes(order) ? order : 'DESC';
     query += ` ORDER BY p.${sortColumn} ${sortOrder}`;
 
-    res.json(await db.prepare(query).all(...params));
+    const rows = await db.prepare(query).all(...params);
+    res.json(rows.map(normalizePlaceholderPackage));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -69,7 +81,7 @@ router.get('/:id', async (req, res) => {
     const pkg = await db.prepare('SELECT * FROM packages WHERE id = ?').get(req.params.id);
     if (!pkg) return res.status(404).json({ error: 'Not found' });
     const files = await db.prepare('SELECT * FROM package_files WHERE package_id = ? ORDER BY file_type, uploaded_at').all(req.params.id);
-    res.json({ ...pkg, files });
+    res.json({ ...normalizePlaceholderPackage(pkg), files });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -91,7 +103,7 @@ router.post('/', async (req, res) => {
       b.requires_loic_input ? 1 : 0,
       b.status||'received', b.notes||null
     );
-    res.json(await db.prepare('SELECT * FROM packages WHERE id = ?').get(result.lastInsertRowid));
+    res.json(normalizePlaceholderPackage(await db.prepare('SELECT * FROM packages WHERE id = ?').get(result.lastInsertRowid)));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -108,7 +120,7 @@ router.put('/:id', async (req, res) => {
     allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
     const set = Object.keys(updates).map(k => `${k} = ?`).join(', ');
     await db.prepare(`UPDATE packages SET ${set} WHERE id = ?`).run(...Object.values(updates), req.params.id);
-    const pkg = await db.prepare('SELECT * FROM packages WHERE id = ?').get(req.params.id);
+    const pkg = normalizePlaceholderPackage(await db.prepare('SELECT * FROM packages WHERE id = ?').get(req.params.id));
     const files = await db.prepare('SELECT * FROM package_files WHERE package_id = ? ORDER BY file_type, uploaded_at').all(req.params.id);
     res.json({ ...pkg, files });
   } catch (err) { res.status(500).json({ error: err.message }); }

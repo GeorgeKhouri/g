@@ -4,6 +4,17 @@ const { getDb } = require('../db-unified');
 const { isRemoteStoredName, readStoredFile } = require('../storage');
 const SENDER_NAME = process.env.SENDER_NAME || 'George Khouri';
 
+function normalizePlaceholderPackage(pkg) {
+  if (!pkg) return pkg;
+  const isPlaceholder = String(pkg.vendor || '').trim() === 'PLACEHOLDER' || String(pkg.recipient_name || '').trim() === 'PLACEHOLDER';
+  if (!isPlaceholder) return pkg;
+  return {
+    ...pkg,
+    date_received: '',
+    notes: null,
+  };
+}
+
 function fmtDate(d) {
   if (!d) return 'N/A';
   return new Date(d + 'T00:00:00').toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -35,7 +46,7 @@ function generatePackageSubject(packages) {
 
 function buildEmailBody(packages) {
   // Sort packages by ID for consistent presentation
-  const sorted = [...packages].sort((a, b) => a.id - b.id);
+  const sorted = [...packages].map(normalizePlaceholderPackage).sort((a, b) => a.id - b.id);
   const n = sorted.length;
   let body = `Hi Loic,\n\nPlease find below a summary of ${n} package${n !== 1 ? 's' : ''} received and processed. Packing slip${n !== 1 ? 's are' : ' is'} attached where available.\n\n`;
 
@@ -107,7 +118,7 @@ router.post('/draft', async (req, res) => {
     if (!package_ids?.length) return res.status(400).json({ error: 'No packages selected' });
 
     const placeholders = package_ids.map(() => '?').join(',');
-    const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
+    const packages = (await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids)).map(normalizePlaceholderPackage);
     if (!packages.length) return res.status(404).json({ error: 'No packages found' });
 
     const body = buildEmailBody(packages);
@@ -162,7 +173,7 @@ router.post('/send', async (req, res) => {
     const maxAttachmentBytes = 20 * 1024 * 1024;
     if (package_ids?.length) {
       const placeholders = package_ids.map(() => '?').join(',');
-      const packages = await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids);
+      const packages = (await db.prepare(`SELECT * FROM packages WHERE id IN (${placeholders})`).all(...package_ids)).map(normalizePlaceholderPackage);
       for (const pkg of packages) {
         const files = await getLoicAttachmentsForPackage(db, pkg.id);
         for (let idx = 0; idx < files.length; idx += 1) {
