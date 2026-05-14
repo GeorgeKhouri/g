@@ -14,7 +14,7 @@ const STATUS_FILTERS = [
   { value: 'delivered',             label: 'Delivered' },
 ];
 
-let activeStatus = 'all', searchVal = '', dateVal = '', sortMode = 'created_at_DESC', debounceTimer;
+let activeStatuses = ['all'], searchVal = '', dateVal = '', sortMode = 'created_at_DESC', debounceTimer;
 
 function getSortParams() {
   const [sortBy, sortOrder] = sortMode.split('_');
@@ -35,14 +35,34 @@ async function loadStats() {
 
 function buildChips() {
   document.getElementById('status-chips').innerHTML = STATUS_FILTERS.map(f => `
-    <button class="status-chip ${f.value === activeStatus ? 'active' : ''}" data-val="${f.value}">${f.label}</button>
+    <button class="status-chip${activeStatuses.includes(f.value) ? ' active' : ''}" data-val="${f.value}">${f.label}</button>
   `).join('');
   document.querySelectorAll('.status-chip').forEach(btn =>
-    btn.addEventListener('click', () => setStatusFilter(btn.dataset.val))
+    btn.addEventListener('click', () => toggleStatusFilter(btn.dataset.val))
   );
 }
 
-function setStatusFilter(val) { activeStatus = val; buildChips(); loadPackages(); }
+function toggleStatusFilter(val) {
+  if (val === 'all') {
+    activeStatuses = ['all'];
+  } else {
+    if (activeStatuses.includes('all')) activeStatuses = [];
+    if (activeStatuses.includes(val)) {
+      activeStatuses = activeStatuses.filter(v => v !== val);
+      if (activeStatuses.length === 0) activeStatuses = ['all'];
+    } else {
+      activeStatuses.push(val);
+    }
+  }
+  buildChips();
+  loadPackages();
+}
+
+function setStatusFilter(val) { // legacy single-select support
+  activeStatuses = [val];
+  buildChips();
+  loadPackages();
+}
 
 function refreshDashboard() {
   loadStats();
@@ -53,12 +73,12 @@ async function loadPackages() {
   try {
     const p = new URLSearchParams();
     const { sortBy, sortOrder } = getSortParams();
-    if (activeStatus !== 'all') p.set('status', activeStatus);
+    if (!activeStatuses.includes('all')) p.set('status', activeStatuses.join(','));
     if (searchVal) p.set('search', searchVal);
     if (dateVal) p.set('date', dateVal);
     p.set('sortBy', sortBy);
     p.set('order', sortOrder);
-    renderList(await api('GET', `/api/packages?${p}`));
+    renderList(api('GET', `/api/packages?${p}`));
   } catch (e) { toast('Failed to load packages', 'error'); }
 }
 

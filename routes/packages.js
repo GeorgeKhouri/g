@@ -41,18 +41,39 @@ router.get('/', async (req, res) => {
     const params = [];
     const conds = [];
     if (status && status !== 'all') {
-      if (status === 'awaiting_confirmation') {
-        conds.push('(p.status = ? OR p.status = ?)');
-        params.push('awaiting_confirmation', 'contacted');
-      } else if (status === 'awaiting_loic') {
-        conds.push('(p.status = ? OR p.loic_email_status = ?)');
-        params.push('awaiting_loic', 'sent');
-      } else if (status === 'delivered') {
-        conds.push('(p.status = ? OR p.status = ? OR p.status = ? OR p.status = ?)');
-        params.push('delivered', 'ready', 'picked_up', 'confirmed');
+      const statusList = status.split(',').map(s => s.trim()).filter(Boolean);
+      if (statusList.length > 1) {
+        const condsArr = [];
+        for (const s of statusList) {
+          if (s === 'awaiting_confirmation') {
+            condsArr.push('(p.status = ? OR p.status = ?)');
+            params.push('awaiting_confirmation', 'contacted');
+          } else if (s === 'awaiting_loic') {
+            condsArr.push('(p.status = ? OR p.loic_email_status = ?)');
+            params.push('awaiting_loic', 'sent');
+          } else if (s === 'delivered') {
+            condsArr.push('(p.status = ? OR p.status = ? OR p.status = ? OR p.status = ?)');
+            params.push('delivered', 'ready', 'picked_up', 'confirmed');
+          } else {
+            condsArr.push('p.status = ?');
+            params.push(s);
+          }
+        }
+        conds.push('(' + condsArr.join(' OR ') + ')');
       } else {
-        conds.push('p.status = ?');
-        params.push(status);
+        if (status === 'awaiting_confirmation') {
+          conds.push('(p.status = ? OR p.status = ?)');
+          params.push('awaiting_confirmation', 'contacted');
+        } else if (status === 'awaiting_loic') {
+          conds.push('(p.status = ? OR p.loic_email_status = ?)');
+          params.push('awaiting_loic', 'sent');
+        } else if (status === 'delivered') {
+          conds.push('(p.status = ? OR p.status = ? OR p.status = ? OR p.status = ?)');
+          params.push('delivered', 'ready', 'picked_up', 'confirmed');
+        } else {
+          conds.push('p.status = ?');
+          params.push(status);
+        }
       }
     }
     if (date) { conds.push('p.date_received = ?'); params.push(date); }
@@ -92,7 +113,7 @@ router.post('/', async (req, res) => {
     const result = await db.prepare(`
       INSERT INTO packages (date_received,carrier,vendor,recipient_name,department,po_number,
         has_packing_slip,items_match,discrepancy_notes,package_type,requires_loic_input,status,notes,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'))
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'))
     `).run(
       b.date_received || new Date().toISOString().slice(0,10),
       b.carrier||null, b.vendor||null,
