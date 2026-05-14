@@ -2,6 +2,7 @@
 const staged = { sticker: [], slip: [] };
 
 document.getElementById('date_received').value = today();
+document.getElementById('po_number').value = 'BON2526';
 initHistorySuggestions();
 
 function normalizeSuggestion(v) {
@@ -31,8 +32,6 @@ async function initHistorySuggestions() {
     const vendorOpts = uniqueRecentValues(rows, 'vendor');
     const recipientOpts = uniqueRecentValues(rows, 'recipient_name');
     const departmentOpts = uniqueRecentValues(rows, 'department');
-    const poOpts = uniqueRecentValues(rows, 'po_number');
-
     // Carrier defaults (most common ones first)
     const carrierDefaults = ['FedEx', 'UPS', 'Purolator', 'Canada Post', 'Canpar', 'DHL', 'Amazon', 'GLS', 'Nationex'];
     const carrierHistory = uniqueRecentValues(rows, 'carrier');
@@ -49,7 +48,6 @@ async function initHistorySuggestions() {
     initAutocomplete('vendor', vendorOpts);
     initAutocomplete('recipient_name', recipientOpts);
     initAutocomplete('department', departmentOpts);
-    initAutocomplete('po_number', poOpts);
     initAutocomplete('carrier', mergedCarriers);
   } catch (e) {
     // Suggestions are optional; form should still work if this fails.
