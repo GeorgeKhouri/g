@@ -2,6 +2,8 @@ const params = new URLSearchParams(location.search);
 const pkgId = params.get('id');
 let currentPkg = null;
 let editMode = false;
+let originalPkg = null;
+let autoSaveTimer = null;
 
 function normalizeSuggestion(v) {
   return String(v || '').trim().toLowerCase();
@@ -154,30 +156,54 @@ function renderFiles(files) {
   });
 }
 
+const EDIT_FIELDS = ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'];
+
 function toggleEdit() {
-  editMode = !editMode;
-  const fields = ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'];
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = !editMode;
-  });
-  ['m-yes','m-no','m-na'].forEach(id => { const el = document.getElementById(id); if(el) el.disabled = !editMode; });
-  document.getElementById('edit-toggle').textContent = editMode ? 'Cancel' : 'Edit';
-  document.getElementById('save-bar').style.display = editMode ? 'flex' : 'none';
-  if (!editMode) render(currentPkg);
+  if (editMode) { cancelEdit(); return; }
+  editMode = true;
+  originalPkg = JSON.parse(JSON.stringify(currentPkg));
+  EDIT_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
+  ['m-yes','m-no','m-na'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
+  document.getElementById('edit-toggle').textContent = 'Cancel';
+  document.getElementById('save-bar').style.display = 'flex';
+  attachAutoSaveListeners();
 }
 
-function cancelEdit() {
+async function cancelEdit() {
   editMode = false;
+  clearTimeout(autoSaveTimer);
+  // Revert server to pre-edit state if auto-saves changed anything
+  if (originalPkg && JSON.stringify(currentPkg) !== JSON.stringify(originalPkg)) {
+    try { await api('PUT', `/api/packages/${pkgId}`, originalPkg); } catch (e) { /* best effort */ }
+  }
+  currentPkg = originalPkg ? JSON.parse(JSON.stringify(originalPkg)) : currentPkg;
+  originalPkg = null;
   render(currentPkg);
   document.getElementById('edit-toggle').textContent = 'Edit';
-  document.getElementById('save-bar').classList.add('hidden');
-  // Re-disable fields
-  ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = true;
-  });
+  document.getElementById('save-bar').style.display = 'none';
+  EDIT_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
   document.querySelectorAll('input[name="items_match"]').forEach(r => r.disabled = true);
+}
+
+function scheduleAutoSave() {
+  if (!editMode) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveInfo, 400);
+}
+
+function attachAutoSaveListeners() {
+  const textFields = ['date_received','carrier','vendor','recipient_name','department','po_number','notes','discrepancy_notes'];
+  textFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('blur', scheduleAutoSave);
+    el.addEventListener('change', scheduleAutoSave);
+  });
+  ['has_packing_slip','package_type','requires_loic_input'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', scheduleAutoSave);
+  });
+  document.querySelectorAll('input[name="items_match"]').forEach(r => r.addEventListener('change', scheduleAutoSave));
 }
 
 function toggleSlipMatch() {
@@ -207,8 +233,9 @@ async function quickSave() {
 }
 
 async function saveInfo() {
+  if (!editMode) return;
   try {
-    const matchVal = document.querySelector('input[name="items_match"]:checked') ? document.querySelector('input[name="items_match"]:checked').value : null;
+    const matchVal = document.querySelector('input[name="items_match"]:checked')?.value || null;
     let items_match = null;
     if (matchVal === 'yes') items_match = 1;
     if (matchVal === 'no') items_match = 0;
@@ -227,16 +254,9 @@ async function saveInfo() {
       requires_loic_input: document.getElementById('requires_loic_input').checked ? 1 : 0,
       notes: document.getElementById('notes').value.trim(),
     };
-    currentPkg = await api('PUT', `/api/packages/${pkgId}`, payload);
-    editMode = false;
-    render(currentPkg);
-    document.getElementById('edit-toggle').textContent = 'Edit';
-    document.getElementById('save-bar').classList.add('hidden');
-    ['date_received','carrier','vendor','recipient_name','department','po_number','has_packing_slip','package_type','requires_loic_input','notes','discrepancy_notes'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.disabled = true;
-    });
-    document.querySelectorAll('input[name="items_match"]').forEach(r => r.disabled = true);
+    const updated = await api('PUT', `/api/packages/${pkgId}`, payload);
+    currentPkg = updated;
+    document.getElementById('hdr-badge').innerHTML = statusBadge(updated.status);
     toast('Saved', 'success');
   } catch (e) { toast(e.message, 'error'); }
 }
