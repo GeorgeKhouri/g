@@ -60,7 +60,7 @@ function buildEmailBody(packages) {
     const recipient = [pkg.recipient_name, pkg.department].filter(Boolean).join(' – ');
     if (recipient) body += `Recipient:            ${recipient}\n`;
 
-    if (pkg.po_number) body += `PO Number:            ${pkg.po_number}\n`;
+    if (pkg.po_number) body += `PO Number(s):         ${pkg.po_number}\n`;
 
     if (pkg.vendor) body += `Vendor / Sender:      ${pkg.vendor}\n`;
 

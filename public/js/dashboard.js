@@ -78,7 +78,7 @@ async function loadPackages() {
     if (dateVal) p.set('date', dateVal);
     p.set('sortBy', sortBy);
     p.set('order', sortOrder);
-    renderList(api('GET', `/api/packages?${p}`));
+    renderList(await api('GET', `/api/packages?${p}`));
   } catch (e) { toast('Failed to load packages', 'error'); }
 }
 
