@@ -99,7 +99,7 @@ async function restoreMissingPackages18To28() {
   for (let i = 18; i <= 28; i++) {
     packages.push({
       id: i,
-      date_received: new Date().toISOString().slice(0, 10),
+      date_received: '',
       carrier: null,
       vendor: 'PLACEHOLDER',
       recipient_name: 'PLACEHOLDER',
@@ -111,7 +111,7 @@ async function restoreMissingPackages18To28() {
       package_type: 'standard',
       requires_loic_input: 0,
       status: 'received',
-      notes: 'Restored placeholder - please update with actual details and re-upload files',
+      notes: null,
       loic_email_status: 'not_sent',
       loic_email_sent_date: null,
       delivery_method: null,
