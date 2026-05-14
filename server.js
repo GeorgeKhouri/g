@@ -5,7 +5,12 @@ const fs = require('fs');
 const os = require('os');
 const { initDb, getDb, closeDb } = require('./db-unified');
 const { scheduleBackups } = require('./backup');
-const { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages, restoreMissingPackages18To28 } = require('./maintenance');
+const {
+  runOneTimePackageCutoffCleanup,
+  clearTrackingNumbersFromExistingPackages,
+  restoreMissingPackages18To28,
+  ensurePackageIdSequence
+} = require('./maintenance');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +56,13 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
     }
   } catch (err) {
     console.error('[maintenance] package 18-28 restore failed:', err.message);
+  }
+
+  try {
+    await ensurePackageIdSequence();
+    console.log('[maintenance] package ID sequence synchronized');
+  } catch (err) {
+    console.error('[maintenance] package ID sequence sync failed:', err.message);
   }
 
   scheduleBackups();

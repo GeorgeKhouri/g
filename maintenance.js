@@ -78,7 +78,17 @@ async function runOneTimePackageCutoffCleanup(cutoffId = 17) {
   };
 }
 
-module.exports = { runOneTimePackageCutoffCleanup, clearTrackingNumbersFromExistingPackages, restoreMissingPackages18To28 };
+module.exports = {
+  runOneTimePackageCutoffCleanup,
+  clearTrackingNumbersFromExistingPackages,
+  restoreMissingPackages18To28,
+  ensurePackageIdSequence
+};
+
+async function ensurePackageIdSequence() {
+  const db = getDb();
+  await resetPackageSequence(db, isPostgresDb());
+}
 
 async function restoreMissingPackages18To28() {
   const db = getDb();
