@@ -3,6 +3,56 @@ const pkgId = params.get('id');
 let currentPkg = null;
 let editMode = false;
 
+function normalizeSuggestion(v) {
+  return String(v || '').trim().toLowerCase();
+}
+
+function uniqueRecentValues(rows, field, max = 100) {
+  const seen = new Set();
+  const values = [];
+  for (const row of rows) {
+    const raw = String(row[field] || '').trim();
+    if (!raw) continue;
+    const key = normalizeSuggestion(raw);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    values.push(raw);
+    if (values.length >= max) break;
+  }
+  return values;
+}
+
+async function initHistorySuggestions() {
+  try {
+    const rows = await api('GET', '/api/packages');
+    if (!Array.isArray(rows) || !rows.length) return;
+
+    const vendorOpts = uniqueRecentValues(rows, 'vendor');
+    const recipientOpts = uniqueRecentValues(rows, 'recipient_name');
+    const departmentOpts = uniqueRecentValues(rows, 'department');
+    const poOpts = uniqueRecentValues(rows, 'po_number');
+
+    const carrierDefaults = ['FedEx', 'UPS', 'Purolator', 'Canada Post', 'Canpar', 'DHL', 'Amazon', 'GLS', 'Nationex'];
+    const carrierHistory = uniqueRecentValues(rows, 'carrier');
+    const mergedCarriers = [];
+    const seenCarrier = new Set();
+    [...carrierDefaults, ...carrierHistory].forEach(v => {
+      const key = normalizeSuggestion(v);
+      if (!key || seenCarrier.has(key)) return;
+      seenCarrier.add(key);
+      mergedCarriers.push(v);
+    });
+
+    initAutocomplete('vendor', vendorOpts);
+    initAutocomplete('recipient_name', recipientOpts);
+    initAutocomplete('department', departmentOpts);
+    initAutocomplete('po_number', poOpts);
+    initAutocomplete('carrier', mergedCarriers);
+  } catch (e) {
+    console.warn('Could not load history suggestions', e);
+  }
+}
+
 if (!pkgId) { window.location = '/'; }
 
 async function load() {
@@ -252,3 +302,4 @@ async function deletePackage() {
 }
 
 load();
+initHistorySuggestions();
