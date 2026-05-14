@@ -236,11 +236,11 @@ router.post('/send', async (req, res) => {
       return res.status(502).json({ error: `SendGrid request failed (${response.status}): ${errorMsg}` });
     }
 
-    // Mark packages as sent
+    // Mark packages as sent and update status to awaiting_loic
     if (package_ids?.length) {
       const now = new Date().toISOString();
       for (const id of package_ids) {
-        await db.prepare("UPDATE packages SET loic_email_status='sent', loic_email_sent_date=?, updated_at=? WHERE id=?")
+        await db.prepare("UPDATE packages SET loic_email_status='sent', loic_email_sent_date=?, status='awaiting_loic', updated_at=? WHERE id=?")
           .run(now, now, id);
       }
     }
