@@ -78,9 +78,9 @@ router.get('/', async (req, res) => {
     }
     if (date) { conds.push('p.date_received = ?'); params.push(date); }
     if (search) {
-      conds.push('(LOWER(CAST(p.id AS TEXT)) LIKE LOWER(?) OR LOWER(p.recipient_name) LIKE LOWER(?) OR LOWER(p.vendor) LIKE LOWER(?) OR LOWER(p.po_number) LIKE LOWER(?) OR LOWER(p.department) LIKE LOWER(?) OR LOWER(p.carrier) LIKE LOWER(?))');
+      conds.push('(LOWER(CAST(p.id AS TEXT)) LIKE LOWER(?) OR LOWER(p.recipient_name) LIKE LOWER(?) OR LOWER(p.vendor) LIKE LOWER(?) OR LOWER(p.po_number) LIKE LOWER(?) OR LOWER(p.department) LIKE LOWER(?) OR LOWER(p.carrier) LIKE LOWER(?) OR LOWER(p.notes) LIKE LOWER(?))');
       const s = `%${search}%`;
-      params.push(s, s, s, s, s, s);
+      params.push(s, s, s, s, s, s, s);
     }
     if (conds.length) query += ' WHERE ' + conds.join(' AND ');
 
